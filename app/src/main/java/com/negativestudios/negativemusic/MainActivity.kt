@@ -619,7 +619,7 @@ private fun NegativeMusicApp() {
                     Row(verticalAlignment=Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Text("Editar datos de la canción",color=fg,fontSize=21.sp,fontWeight=FontWeight.ExtraBold)
-                            Text("Los cambios se guardarán solo en NegativeMusic y no modificarán el archivo original.",color=secondary,fontSize=12.sp)
+                            Text("Los cambios se guardarán solo en Lunora y no modificarán el archivo original.",color=secondary,fontSize=12.sp)
                         }
                         IconButton(onClick={metadataSong=null}){Icon(Icons.Default.Close,"Cerrar",tint=secondary)}
                     }
@@ -643,7 +643,7 @@ private fun NegativeMusicApp() {
                                     .putString("song_cover_${uri}", metadataCover)
                                     .apply()
                                 metadataSong = null
-                                toast = "Datos guardados solo en NegativeMusic."
+                                toast = "Datos guardados solo en Lunora."
                             },
                             enabled=metadataTitle.isNotBlank() && metadataArtist.isNotBlank(),
                             modifier=Modifier.weight(1f),
@@ -872,7 +872,7 @@ private fun SettingsPage(
                 if (section != null) IconButton(onClick = { onSection(null) }) { Icon(Icons.Default.ArrowBack, "Volver", tint = fg) }
                 Column(Modifier.weight(1f)) {
                     Text(if (section == null) "Configuración" else section, color = fg, fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
-                    Text(if (section == null) "Personaliza NegativeMusic" else "Ajustes de " + section, color = sec, fontSize = 13.sp)
+                    Text(if (section == null) "Personaliza Lunora" else "Ajustes de " + section, color = sec, fontSize = 13.sp)
                 }
             }
         }
@@ -881,7 +881,7 @@ private fun SettingsPage(
             item { SettingsCategory("Reproducción", "Crossfade, audio mono, volumen y ecualizador", Icons.Default.GraphicEq, fg, sec, card, dark) { onSection("Reproducción") } }
             item { SettingsCategory("Almacenamiento", "Espacio del dispositivo, música y caché", Icons.Default.Storage, fg, sec, card, dark) { onSection("Almacenamiento") } }
             item { SettingsCategory("Datos y privacidad", "Borrar caché o datos locales", Icons.Default.Security, fg, sec, card, dark) { onSection("Datos y privacidad") } }
-            item { SettingsCategory("Acerca de", "Versión y detalles de NegativeMusic", Icons.Default.Info, fg, sec, card, dark) { onSection("Acerca de") } }
+            item { SettingsCategory("Acerca de", "Versión y detalles de Lunora", Icons.Default.Info, fg, sec, card, dark) { onSection("Acerca de") } }
         } else when (section) {
             "Apariencia" -> item {
                 Card(colors = CardDefaults.cardColors(containerColor = card)) {
@@ -894,7 +894,7 @@ private fun SettingsPage(
                             }
                         }
                         HorizontalDivider(color = AccentCyan.copy(alpha = .25f))
-                        Text("Identidad NegativeStudios", color = fg, fontWeight = FontWeight.SemiBold)
+                        Text("Identidad Lunora", color = fg, fontWeight = FontWeight.SemiBold)
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                             Box(Modifier.size(24.dp).clip(RoundedCornerShape(6.dp)).background(AccentBlue))
                             Box(Modifier.size(24.dp).clip(RoundedCornerShape(6.dp)).background(AccentCyan))
