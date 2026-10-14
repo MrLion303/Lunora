@@ -20,6 +20,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
@@ -62,6 +63,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -305,7 +307,7 @@ private fun NegativeMusicApp() {
     MaterialTheme(colorScheme = if (dark) darkColorScheme(primary=AccentBlue, background=bg, surface=surface) else lightColorScheme(primary=AccentBlue, secondary=AccentBlue, secondaryContainer=Color(0xFFEAE2FF), onSecondaryContainer=Color(0xFF302052), surfaceVariant=Color(0xFFF0EAFF), background=bg, surface=surface)) {
         Column(Modifier.fillMaxSize().background(bg)) {
             if (!page.startsWith("playlist:")) Row(Modifier.fillMaxWidth().padding(horizontal=18.dp, vertical=14.dp), verticalAlignment=Alignment.CenterVertically) {
-                Box(Modifier.size(38.dp).clip(RoundedCornerShape(12.dp)).background(AccentBlue), contentAlignment=Alignment.Center) { Icon(Icons.Default.GraphicEq, null, tint=Color.Black) }
+                Box(Modifier.size(38.dp).clip(RoundedCornerShape(12.dp)).background(surface), contentAlignment=Alignment.Center) { Image(painter = painterResource(R.drawable.lunora_isotipo), contentDescription = "Isotipo de Lunora", modifier = Modifier.fillMaxSize().padding(3.dp), contentScale = androidx.compose.ui.layout.ContentScale.Fit) }
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) { Text("LUNORA", color=secondary, fontSize=10.sp, letterSpacing=2.sp, fontWeight=FontWeight.Bold); Text("Music", color=fg, fontSize=24.sp, fontWeight=FontWeight.ExtraBold) }
             }
@@ -985,7 +987,7 @@ private fun SettingsPage(
             "Acerca de" -> item {
                 Card(colors = CardDefaults.cardColors(containerColor = card)) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Lunora", color = fg, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                        Image(painter = painterResource(R.drawable.lunora_imagotipo), contentDescription = "Imagotipo de Lunora", modifier = Modifier.fillMaxWidth().height(112.dp), contentScale = androidx.compose.ui.layout.ContentScale.Fit)
                         Text("Versión 0.1.0 Beta", color = AccentBlue, fontWeight = FontWeight.SemiBold)
                         Text("Tu música, en tu propio ritmo.", color = sec)
                     }
