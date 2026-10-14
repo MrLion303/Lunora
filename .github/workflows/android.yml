@@ -45,6 +45,12 @@ jobs:
           path: ~/.android/debug.keystore
           key: negativemusic-android-debug-keystore-v1
 
+      - name: Preparar fuentes de la aplicación
+        shell: bash
+        run: |
+          mkdir -p app/src/main/res/font
+          curl -fL --retry 3 "https://raw.githubusercontent.com/google/fonts/main/ofl/quicksand/Quicksand%5Bwght%5D.ttf" -o app/src/main/res/font/quicksand_regular.ttf
+          curl -fL --retry 3 "https://raw.githubusercontent.com/google/fonts/main/ofl/zenmarugothic/ZenMaruGothic%5Bwght%5D.ttf" -o app/src/main/res/font/zen_maru_gothic_regular.ttf
       - name: Build debug APK
         run: gradle --no-daemon assembleDebug
       - name: Upload APK
