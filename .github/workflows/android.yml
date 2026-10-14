@@ -51,6 +51,14 @@ jobs:
           mkdir -p app/src/main/res/font
           curl -fL --retry 3 "https://raw.githubusercontent.com/google/fonts/main/ofl/quicksand/Quicksand%5Bwght%5D.ttf" -o app/src/main/res/font/quicksand_regular.ttf
           curl -fL --retry 3 "https://raw.githubusercontent.com/google/fonts/main/ofl/zenmarugothic/ZenMaruGothic%5Bwght%5D.ttf" -o app/src/main/res/font/zen_maru_gothic_regular.ttf
+      - name: Preparar recursos de marca
+        shell: bash
+        run: |
+          mkdir -p app/src/main/res/drawable-nodpi
+          test -s branding/isotipo.png
+          test -s branding/imagotipo.png
+          cp branding/isotipo.png app/src/main/res/drawable-nodpi/lunora_isotipo.png
+          cp branding/imagotipo.png app/src/main/res/drawable-nodpi/lunora_imagotipo.png
       - name: Build debug APK
         run: gradle --no-daemon assembleDebug
       - name: Upload APK
