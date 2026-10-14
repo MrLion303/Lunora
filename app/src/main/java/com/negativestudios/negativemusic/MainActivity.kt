@@ -58,6 +58,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -80,8 +82,10 @@ import org.json.JSONObject
 import java.util.Locale
 import java.util.concurrent.ExecutionException
 
-private val AccentBlue = Color(0xFF2C8CFF)
-private val AccentCyan = Color(0xFF14F3F1)
+private val AccentBlue = Color(0xFF9B7BFF)
+private val AccentCyan = Color(0xFFC4B5FD)
+private val QuicksandFamily = FontFamily(Font(R.font.quicksand_regular))
+private val ZenMaruGothicFamily = FontFamily(Font(R.font.zen_maru_gothic_regular))
 private val Dark = Color(0xFF070B10)
 private val Panel = Color(0xFF0B1118)
 private val Gray = Color(0xFFB3C0CE)
@@ -298,12 +302,12 @@ private fun NegativeMusicApp() {
             else -> {page="Inicio";search=""}
         }
     }
-    MaterialTheme(colorScheme = if (dark) darkColorScheme(primary=AccentBlue, background=bg, surface=surface) else lightColorScheme(primary=AccentBlue, secondary=AccentBlue, secondaryContainer=Color(0xFFDCEBFF), onSecondaryContainer=Color(0xFF14263D), surfaceVariant=Color(0xFFE1EDFF), background=bg, surface=surface)) {
+    MaterialTheme(colorScheme = if (dark) darkColorScheme(primary=AccentBlue, background=bg, surface=surface) else lightColorScheme(primary=AccentBlue, secondary=AccentBlue, secondaryContainer=Color(0xFFEAE2FF), onSecondaryContainer=Color(0xFF302052), surfaceVariant=Color(0xFFF0EAFF), background=bg, surface=surface)) {
         Column(Modifier.fillMaxSize().background(bg)) {
             if (!page.startsWith("playlist:")) Row(Modifier.fillMaxWidth().padding(horizontal=18.dp, vertical=14.dp), verticalAlignment=Alignment.CenterVertically) {
                 Box(Modifier.size(38.dp).clip(RoundedCornerShape(12.dp)).background(AccentBlue), contentAlignment=Alignment.Center) { Icon(Icons.Default.GraphicEq, null, tint=Color.Black) }
                 Spacer(Modifier.width(10.dp))
-                Column(Modifier.weight(1f)) { Text("NEGATIVE", color=secondary, fontSize=10.sp, letterSpacing=2.sp, fontWeight=FontWeight.Bold); Text("Music", color=fg, fontSize=24.sp, fontWeight=FontWeight.ExtraBold) }
+                Column(Modifier.weight(1f)) { Text("LUNORA", color=secondary, fontSize=10.sp, letterSpacing=2.sp, fontWeight=FontWeight.Bold); Text("Music", color=fg, fontSize=24.sp, fontWeight=FontWeight.ExtraBold) }
             }
             Box(Modifier.weight(1f).fillMaxWidth()) {
             when {
@@ -349,7 +353,7 @@ private fun NegativeMusicApp() {
                         Column {
                             Box(Modifier.fillMaxWidth().padding(horizontal=22.dp,vertical=5.dp),contentAlignment=Alignment.Center){
                                 if(selectedPlaylist?.cover?.isNotBlank()==true) AsyncImage(model=selectedPlaylist?.cover,contentDescription="Portada de playlist",modifier=Modifier.fillMaxWidth(.68f).aspectRatio(1f).clip(RoundedCornerShape(18.dp)),contentScale=androidx.compose.ui.layout.ContentScale.Crop)
-                                else Box(Modifier.fillMaxWidth(.68f).aspectRatio(1f).clip(RoundedCornerShape(18.dp)).background(Brush.linearGradient(listOf(Color(0xFF102D4A),Color(0xFF071018)))),contentAlignment=Alignment.Center){Icon(Icons.Default.QueueMusic,null,tint=AccentCyan,modifier=Modifier.size(70.dp))}
+                                else Box(Modifier.fillMaxWidth(.68f).aspectRatio(1f).clip(RoundedCornerShape(18.dp)).background(Brush.linearGradient(listOf(Color(0xFF30204D),Color(0xFF100D18)))),contentAlignment=Alignment.Center){Icon(Icons.Default.QueueMusic,null,tint=AccentCyan,modifier=Modifier.size(70.dp))}
                             }
                             Text(selectedPlaylist?.name ?: "Playlist",Modifier.padding(start=22.dp,end=20.dp,top=6.dp,bottom=4.dp),color=fg,fontSize=27.sp,fontWeight=FontWeight.ExtraBold)
                             Text(selectedPlaylist?.description.orEmpty(),Modifier.padding(horizontal=22.dp),color=secondary,maxLines=2,overflow=TextOverflow.Ellipsis)
@@ -549,7 +553,7 @@ private fun NegativeMusicApp() {
                                 items(candidates,key={it.uri}) { song ->
                                     val alreadyAdded=currentPlaylist?.songs?.contains(song.uri)==true
                                     Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).clickable(enabled=!alreadyAdded){selectedSongUris=if(song.uri in selectedSongUris)selectedSongUris-song.uri else selectedSongUris+song.uri}.padding(horizontal=7.dp,vertical=8.dp),verticalAlignment=Alignment.CenterVertically){
-                                        Box(Modifier.size(42.dp).clip(RoundedCornerShape(10.dp)).background(if(dark)Color(0xFF102D4A) else Color(0xFFEAF0F7)),contentAlignment=Alignment.Center){Icon(Icons.Default.MusicNote,null,tint=AccentBlue)}
+                                        Box(Modifier.size(42.dp).clip(RoundedCornerShape(10.dp)).background(if(dark)Color(0xFF102D4A) else Color(0xFFF0EAFF)),contentAlignment=Alignment.Center){Icon(Icons.Default.MusicNote,null,tint=AccentBlue)}
                                         Spacer(Modifier.width(10.dp));Column(Modifier.weight(1f)){Text(song.title,color=if(alreadyAdded)Gray else Color.White,fontWeight=FontWeight.SemiBold,maxLines=1,overflow=TextOverflow.Ellipsis);Text(song.artist,color=Gray,fontSize=12.sp,maxLines=1,overflow=TextOverflow.Ellipsis)}
                                         if(alreadyAdded)Icon(Icons.Default.CheckCircle,"Ya añadida",tint=AccentCyan,modifier=Modifier.size(22.dp)) else Checkbox(checked=song.uri in selectedSongUris,onCheckedChange={checked->selectedSongUris=if(checked)selectedSongUris+song.uri else selectedSongUris-song.uri},colors=CheckboxDefaults.colors(checkedColor=AccentBlue))
                                     }
@@ -981,9 +985,9 @@ private fun SettingsPage(
             "Acerca de" -> item {
                 Card(colors = CardDefaults.cardColors(containerColor = card)) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("NegativeMusic", color = fg, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                        Text("Lunora", color = fg, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                         Text("Versión 0.1.0 Beta", color = AccentBlue, fontWeight = FontWeight.SemiBold)
-                        Text("Reproductor local de NegativeStudios.", color = sec)
+                        Text("Tu música, en tu propio ritmo.", color = sec)
                     }
                 }
             }
