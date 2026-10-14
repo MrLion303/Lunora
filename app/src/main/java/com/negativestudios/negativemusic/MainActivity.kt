@@ -306,10 +306,13 @@ private fun NegativeMusicApp() {
     }
     MaterialTheme(colorScheme = if (dark) darkColorScheme(primary=AccentBlue, background=bg, surface=surface) else lightColorScheme(primary=AccentBlue, secondary=AccentBlue, secondaryContainer=Color(0xFFEAE2FF), onSecondaryContainer=Color(0xFF302052), surfaceVariant=Color(0xFFF0EAFF), background=bg, surface=surface)) {
         Column(Modifier.fillMaxSize().background(bg)) {
-            if (!page.startsWith("playlist:")) Row(Modifier.fillMaxWidth().padding(horizontal=18.dp, vertical=14.dp), verticalAlignment=Alignment.CenterVertically) {
-                Box(Modifier.size(38.dp).clip(RoundedCornerShape(12.dp)).background(surface), contentAlignment=Alignment.Center) { Image(painter = painterResource(R.drawable.lunora_isotipo), contentDescription = "Isotipo de Lunora", modifier = Modifier.fillMaxSize().padding(3.dp), contentScale = androidx.compose.ui.layout.ContentScale.Fit) }
-                Spacer(Modifier.width(10.dp))
-                Column(Modifier.weight(1f)) { Text("LUNORA", color=secondary, fontSize=10.sp, letterSpacing=2.sp, fontWeight=FontWeight.Bold); Text("Music", color=fg, fontSize=24.sp, fontWeight=FontWeight.ExtraBold) }
+            if (!page.startsWith("playlist:")) Row(Modifier.fillMaxWidth().padding(horizontal=18.dp, vertical=12.dp), verticalAlignment=Alignment.CenterVertically) {
+                Image(
+                    painter = painterResource(R.drawable.lunora_imagotipo),
+                    contentDescription = "Lunora Music",
+                    modifier = Modifier.height(42.dp).widthIn(max = 220.dp),
+                    contentScale = androidx.compose.ui.layout.ContentScale.Fit
+                )
             }
             Box(Modifier.weight(1f).fillMaxWidth()) {
             when {
