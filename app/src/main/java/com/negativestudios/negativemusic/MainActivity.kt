@@ -343,6 +343,110 @@ private fun NegativeMusicApp() {
         else -> songs
     }.map(::displaySong)
 
+    fun applyShuffleModeToScope(scopeSongs: List<Song>, mode: Int, global: Boolean) {
+        val p = controller
+        val uniqueSongs = scopeSongs.distinctBy { it.uri }
+        if (uniqueSongs.isEmpty()) { toast = "No hay canciones para mezclar."; return }
+        if (p == null) { toast = "El reproductor se está iniciando."; return }
+
+        if (global) {
+            globalShuffleMode = mode
+            individualShuffleMode = 0
+        } else {
+            individualShuffleMode = mode
+            globalShuffleMode = 0
+        }
+        queueIsGlobal = global
+
+        val currentId = p.currentMediaItem?.mediaId
+        val chosen = uniqueSongs.firstOrNull { it.uri == currentId }
+            ?: now?.let { current -> uniqueSongs.firstOrNull { it.uri == current.uri } }
+            ?: if (mode > 0) uniqueSongs.random() else uniqueSongs.first()
+        val chosenIndex = uniqueSongs.indexOfFirst { it.uri == chosen.uri }.coerceAtLeast(0)
+        val positionMs = if (currentId == chosen.uri) p.currentPosition else 0L
+        val sourceRest = if (mode > 0) {
+            uniqueSongs.filter { it.uri != chosen.uri }
+        } else {
+            uniqueSongs.drop(chosenIndex + 1).filter { it.uri != chosen.uri }
+        }
+        val queueRest = if (mode > 0) sourceRest.shuffled() else sourceRest
+        queueSourceUris = (listOf(chosen) + sourceRest).map { it.uri }
+        queueScopeUris = queueSourceUris.toSet()
+        manualQueueUris = emptySet()
+        p.setMediaItems((listOf(chosen) + queueRest).map(::item), 0, positionMs)
+        p.shuffleModeEnabled = false
+        p.repeatMode = repeat
+        p.prepare()
+        p.play()
+        now = chosen
+        toast = when {
+            global && mode == 1 -> "Aleatorio global activado."
+            global && mode == 2 -> "Aleatorio global mágico activado."
+            !global && mode == 1 -> "Aleatorio activado para esta lista."
+            !global && mode == 2 -> "Aleatorio mágico activado para esta lista."
+            else -> "Aleatorio desactivado."
+        }
+    }
+
+    fun toggleIndividualShuffle(scopeSongs: List<Song>) {
+        val next = (individualShuffleMode + 1) % 3
+        applyShuffleModeToScope(scopeSongs, next, global = false)
+    }
+
+    fun toggleGlobalShuffle() {
+        if (songs.isEmpty()) { toast = "No hay canciones en la biblioteca."; return }
+        val next = (globalShuffleMode + 1) % 3
+        applyShuffleModeToScope(songs, next, global = true)
+    }
+
+    suspend fun reorderMagicQueue() {
+        val p = controller ?: return
+        val mode = if (queueIsGlobal) globalShuffleMode else individualShuffleMode
+        if (mode != 2) return
+        val current = p.currentMediaItem ?: return
+        val currentIndex = p.currentMediaItemIndex
+        if (currentIndex < 0 || current.mediaId !in queueScopeUris) return
+        val currentSong = songs.firstOrNull { it.uri == current.mediaId } ?: return
+        val candidateIndices = ((currentIndex + 1) until minOf(p.mediaItemCount, currentIndex + 9))
+            .filter { p.getMediaItemAt(it).mediaId in queueScopeUris }
+        if (candidateIndices.isEmpty()) return
+
+        magicShuffleAnalysisBusy = true
+        try {
+            val reference = SmartShuffle.signatureFor(ctx, prefs, currentSong) ?: return
+            var bestIndex = -1
+            var bestCost = Double.POSITIVE_INFINITY
+            for (index in candidateIndices) {
+                val mediaId = p.getMediaItemAt(index).mediaId
+                val candidate = songs.firstOrNull { it.uri == mediaId } ?: continue
+                val signature = SmartShuffle.signatureFor(ctx, prefs, candidate) ?: continue
+                val cost = SmartShuffle.compatibilityCost(reference, signature)
+                if (cost.isFinite() && cost < bestCost) {
+                    bestCost = cost
+                    bestIndex = index
+                }
+            }
+            val activeMode = if (queueIsGlobal) globalShuffleMode else individualShuffleMode
+            if (bestIndex > currentIndex + 1 &&
+                p.currentMediaItem?.mediaId == current.mediaId &&
+                activeMode == 2 &&
+                current.mediaId in queueScopeUris
+            ) {
+                p.moveMediaItem(bestIndex, currentIndex + 1)
+            }
+        } finally {
+            magicShuffleAnalysisBusy = false
+        }
+    }
+
+    LaunchedEffect(now?.uri, queueIsGlobal, globalShuffleMode, individualShuffleMode) {
+        val activeMode = if (queueIsGlobal) globalShuffleMode else individualShuffleMode
+        if (activeMode == 2) {
+            delay(100)
+            reorderMagicQueue()
+        }
+    }
+
     BackHandler {
         when {
             showPlayer -> showPlayer=false
