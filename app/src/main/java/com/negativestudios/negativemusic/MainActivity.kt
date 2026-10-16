@@ -962,6 +962,71 @@ private fun NegativeMusicApp() {
     }
 }
 
+private fun copyPlaylistCover(context: Context, uri: Uri): String? {
+    if (uri.scheme != "content") {
+        return if (uri.scheme == "file" && File(uri.path.orEmpty()).isFile) uri.toString() else null
+    }
+    val folder = File(context.filesDir, "playlist_covers")
+    if (!folder.exists() && !folder.mkdirs()) return null
+    val mimeType = runCatching { context.contentResolver.getType(uri) }.getOrNull()
+    val extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType) ?: "img"
+    val destination = File(folder, "cover_${UUID.randomUUID()}.$extension")
+    return try {
+        val source = context.contentResolver.openInputStream(uri) ?: return null
+        source.use { input -> destination.outputStream().use { output -> input.copyTo(output) } }
+        if (destination.length() <= 0L) {
+            destination.delete()
+            null
+        } else {
+            Uri.fromFile(destination).toString()
+        }
+    } catch (_: Exception) {
+        runCatching { destination.delete() }
+        null
+    }
+}
+
+@Composable private fun PlaylistCoverImage(
+    cover: String,
+    modifier: Modifier,
+    contentDescription: String,
+    fallbackColor: Color,
+    fallbackIconSize: androidx.compose.ui.unit.Dp
+) {
+    val painter = rememberAsyncImagePainter(model = cover)
+    Box(modifier.background(fallbackColor), contentAlignment = Alignment.Center) {
+        if (painter.state is AsyncImagePainter.State.Success) {
+            Image(
+                painter = painter,
+                contentDescription = contentDescription,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = androidx.compose.ui.layout.ContentScale.Crop
+            )
+        } else {
+            Icon(
+                Icons.Default.QueueMusic,
+                contentDescription = null,
+                tint = AccentBlue,
+                modifier = Modifier.size(fallbackIconSize)
+            )
+        }
+    }
+}
+
+@Composable private fun ShuffleModeGlyph(mode: Int, tint: Color, size: androidx.compose.ui.unit.Dp) {
+    Box(Modifier.size(size)) {
+        Icon(Icons.Default.Shuffle, contentDescription = if (mode == 2) "Aleatorio mágico" else "Aleatorio", tint = tint, modifier = Modifier.fillMaxSize())
+        if (mode == 2) {
+            Icon(
+                Icons.Default.AutoAwesome,
+                contentDescription = "Compatibilidad de BPM y tonalidad",
+                tint = AccentSky,
+                modifier = Modifier.size(size * 0.52f).align(Alignment.TopEnd).offset(x = 2.dp, y = (-2).dp)
+            )
+        }
+    }
+}
+
 @Composable private fun BottomAction(label:String,icon:androidx.compose.ui.graphics.vector.ImageVector,fg:Color,onClick:()->Unit){Row(Modifier.fillMaxWidth().clickable(onClick=onClick).padding(horizontal=22.dp,vertical=13.dp),verticalAlignment=Alignment.CenterVertically){Icon(icon,null,tint=if(fg==Color.White) AccentBlue else fg);Spacer(Modifier.width(18.dp));Text(label,color=fg,fontSize=15.sp)}}
 
 private fun readPlaylists(prefs: android.content.SharedPreferences): List<Playlist> = try {
@@ -1010,19 +1075,20 @@ private fun SwipeQueueContainer(song: Song, onQueue: () -> Unit, content: @Compo
 }
 @Composable private fun PlaylistGalleryCard(playlist: Playlist, modifier: Modifier, fg: Color, secondary: Color, onClick: () -> Unit) {
     Column(modifier.clickable(onClick = onClick).padding(bottom = 8.dp)) {
-        Box(
-            Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(14.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant),
-            contentAlignment = Alignment.Center
-        ) {
-            if (playlist.cover.isNotBlank()) {
-                AsyncImage(
-                    model = playlist.cover,
-                    contentDescription = "Portada de ${playlist.name}",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = androidx.compose.ui.layout.ContentScale.Crop
-                )
-            } else {
+        if (playlist.cover.isNotBlank()) {
+            PlaylistCoverImage(
+                playlist.cover,
+                Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(14.dp)),
+                "Portada de ${playlist.name}",
+                MaterialTheme.colorScheme.surfaceVariant,
+                42.dp
+            )
+        } else {
+            Box(
+                Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(14.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center
+            ) {
                 Icon(Icons.Default.QueueMusic, contentDescription = null, tint = AccentBlue, modifier = Modifier.size(42.dp))
             }
         }
@@ -1034,7 +1100,7 @@ private fun SwipeQueueContainer(song: Song, onQueue: () -> Unit, content: @Compo
 
 @Composable private fun HomeRow(title:String,sub:String,icon:androidx.compose.ui.graphics.vector.ImageVector,fg:Color,secondary:Color,cover:String="",onClick:()->Unit){
     Row(Modifier.fillMaxWidth().clickable(onClick=onClick).padding(horizontal=20.dp,vertical=9.dp),verticalAlignment=Alignment.CenterVertically){
-        if(cover.isNotBlank()) AsyncImage(model=cover,contentDescription="Portada de $title",modifier=Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)),contentScale=androidx.compose.ui.layout.ContentScale.Crop)
+        if(cover.isNotBlank()) PlaylistCoverImage(cover,Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)),"Portada de $title",AccentBlue.copy(alpha=.12f),26.dp)
         else Box(Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)).background(AccentBlue.copy(alpha=.14f)),contentAlignment=Alignment.Center){Icon(icon,null,tint=AccentBlue)}
         Spacer(Modifier.width(12.dp));Column(Modifier.weight(1f)){Text(title,color=fg,fontWeight=FontWeight.SemiBold);Text(sub,color=secondary,fontSize=12.sp)};Icon(Icons.Default.ChevronRight,null,tint=secondary)
     }
