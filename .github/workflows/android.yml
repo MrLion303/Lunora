@@ -57,8 +57,12 @@ jobs:
           mkdir -p app/src/main/res/drawable-nodpi
           test -s branding/isotipo.png
           test -s branding/imagotipo.png
+          test -s branding/iconapp.png
+          test -s branding/lunoramenutitle.png
           cp branding/isotipo.png app/src/main/res/drawable-nodpi/lunora_isotipo.png
           cp branding/imagotipo.png app/src/main/res/drawable-nodpi/lunora_imagotipo.png
+          cp branding/iconapp.png app/src/main/res/drawable-nodpi/lunora_iconapp.png
+          cp branding/lunoramenutitle.png app/src/main/res/drawable-nodpi/lunora_menu_title.png
       - name: Build debug APK
         run: gradle --no-daemon assembleDebug
       - name: Upload APK

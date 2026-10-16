@@ -86,6 +86,8 @@ import java.util.concurrent.ExecutionException
 
 private val AccentBlue = Color(0xFF9B7BFF)
 private val AccentCyan = Color(0xFFC4B5FD)
+private val AccentSky = Color(0xFF8EDCFF)
+private val AccentPink = Color(0xFFFFA9D6)
 private val QuicksandFamily = FontFamily(Font(R.font.quicksand_regular))
 private val ZenMaruGothicFamily = FontFamily(Font(R.font.zen_maru_gothic_regular))
 private val Dark = Color(0xFF070B10)
@@ -304,13 +306,13 @@ private fun NegativeMusicApp() {
             else -> {page="Inicio";search=""}
         }
     }
-    MaterialTheme(colorScheme = if (dark) darkColorScheme(primary=AccentBlue, background=bg, surface=surface) else lightColorScheme(primary=AccentBlue, secondary=AccentBlue, secondaryContainer=Color(0xFFEAE2FF), onSecondaryContainer=Color(0xFF302052), surfaceVariant=Color(0xFFF0EAFF), background=bg, surface=surface)) {
+    MaterialTheme(colorScheme = if (dark) darkColorScheme(primary=AccentBlue, secondary=AccentSky, background=bg, surface=surface) else lightColorScheme(primary=AccentBlue, secondary=AccentSky, secondaryContainer=Color(0xFFDDF5FF), onSecondaryContainer=Color(0xFF15384A), surfaceVariant=Color(0xFFF0EAFF), background=bg, surface=surface)) {
         Column(Modifier.fillMaxSize().background(bg)) {
             if (!page.startsWith("playlist:")) Row(Modifier.fillMaxWidth().padding(horizontal=18.dp, vertical=12.dp), verticalAlignment=Alignment.CenterVertically) {
                 Image(
-                    painter = painterResource(R.drawable.lunora_imagotipo),
-                    contentDescription = "Lunora Music",
-                    modifier = Modifier.height(42.dp).widthIn(max = 220.dp),
+                    painter = painterResource(R.drawable.lunora_menu_title),
+                    contentDescription = "Lunora",
+                    modifier = Modifier.height(43.dp).widthIn(max = 250.dp),
                     contentScale = androidx.compose.ui.layout.ContentScale.Fit
                 )
             }
@@ -437,8 +439,8 @@ private fun NegativeMusicApp() {
                 else -> LazyColumn(Modifier.fillMaxSize(),contentPadding=PaddingValues(bottom=8.dp)) {
                     item { Column(Modifier.padding(horizontal=20.dp, vertical=10.dp)) { Text("Tu música, tu mundo.",color=fg,fontSize=28.sp,fontWeight=FontWeight.ExtraBold); Text(if(loading)"Buscando música…" else "${songs.size} canciones en este dispositivo",color=secondary) } }
                     item { Row(Modifier.fillMaxWidth().padding(16.dp),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
-                        HomeTile("Reproducir todo","Tu biblioteca",Icons.Default.PlayArrow,Modifier.weight(1f)){play(songs)}
-                        HomeTile(if(shuffle)"Aleatorio activado" else "Modo aleatorio","Mezcla tu música",Icons.Default.Shuffle,Modifier.weight(1f)){if((controller?.mediaItemCount?:0)==0){shuffle=!shuffle;if(shuffle)play(songs.shuffled())else play(songs)}else toggleShuffleQueue()}
+                        HomeTile("Reproducir todo","Tu biblioteca",Icons.Default.PlayArrow,Modifier.weight(1f),AccentSky){play(songs)}
+                        HomeTile(if(shuffle)"Aleatorio activado" else "Modo aleatorio","Mezcla tu música",Icons.Default.Shuffle,Modifier.weight(1f),AccentPink){if((controller?.mediaItemCount?:0)==0){shuffle=!shuffle;if(shuffle)play(songs.shuffled())else play(songs)}else toggleShuffleQueue()}
                     } }
                     item { Text("Tu biblioteca",Modifier.padding(start=20.dp,top=14.dp,bottom=6.dp),color=fg,fontSize=19.sp,fontWeight=FontWeight.Bold) }
                     item { HomeRow("Buscar canciones","${songs.size} canciones en el dispositivo",Icons.Default.LibraryMusic,fg,secondary){page="Buscar"} }
@@ -704,7 +706,7 @@ private fun NegativeMusicApp() {
                     Spacer(Modifier.height(18.dp))
                     Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
                         Column(Modifier.weight(1f)){Text(songTitle(now!!),color=fg,fontSize=23.sp,fontWeight=FontWeight.ExtraBold,maxLines=2,overflow=TextOverflow.Ellipsis);Text(songArtist(now!!),color=secondary,fontSize=15.sp,maxLines=1)}
-                        IconButton(onClick={favorite(now!!)} ){Icon(Icons.Default.Favorite,null,tint=if(now!!.uri in favorites)AccentBlue else secondary)}
+                        IconButton(onClick={favorite(now!!)} ){Icon(Icons.Default.Favorite,null,tint=if(now!!.uri in favorites)AccentPink else secondary)}
                     }
                     Spacer(Modifier.height(18.dp))
                     Slider(value=if(duration>0)(position.toFloat()/duration).coerceIn(0f,1f) else 0f,onValueChange={controller?.seekTo((it*duration).toLong())},modifier=Modifier.height(14.dp),thumb={Box(Modifier.width(4.dp).height(18.dp).background(AccentBlue,RoundedCornerShape(2.dp)))},colors=SliderDefaults.colors(thumbColor=AccentBlue,activeTrackColor=AccentBlue))
@@ -796,8 +798,8 @@ private fun SwipeQueueContainer(song: Song, onQueue: () -> Unit, content: @Compo
     }
 }
 
-@Composable private fun HomeTile(title:String,sub:String,icon:androidx.compose.ui.graphics.vector.ImageVector,modifier:Modifier,onClick:()->Unit){
-    Card(modifier.clickable(onClick=onClick),colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surfaceVariant),shape=RoundedCornerShape(16.dp)){Column(Modifier.padding(15.dp)){Box(Modifier.size(42.dp).clip(RoundedCornerShape(12.dp)).background(AccentBlue.copy(alpha=.14f)),contentAlignment=Alignment.Center){Icon(icon,null,tint=AccentBlue,modifier=Modifier.size(28.dp))};Spacer(Modifier.height(14.dp));Text(title,color=MaterialTheme.colorScheme.onSurface,fontWeight=FontWeight.Bold);Text(sub,color=MaterialTheme.colorScheme.onSurfaceVariant,fontSize=11.sp)}}
+@Composable private fun HomeTile(title:String,sub:String,icon:androidx.compose.ui.graphics.vector.ImageVector,modifier:Modifier,accent:Color,onClick:()->Unit){
+    Card(modifier.clickable(onClick=onClick),colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surfaceVariant),shape=RoundedCornerShape(16.dp)){Column(Modifier.padding(15.dp)){Box(Modifier.size(42.dp).clip(RoundedCornerShape(12.dp)).background(accent.copy(alpha=.14f)),contentAlignment=Alignment.Center){Icon(icon,null,tint=accent,modifier=Modifier.size(28.dp))};Spacer(Modifier.height(14.dp));Text(title,color=MaterialTheme.colorScheme.onSurface,fontWeight=FontWeight.Bold);Text(sub,color=MaterialTheme.colorScheme.onSurfaceVariant,fontSize=11.sp)}}
 }
 @Composable private fun HomeRow(title:String,sub:String,icon:androidx.compose.ui.graphics.vector.ImageVector,fg:Color,secondary:Color,cover:String="",onClick:()->Unit){
     Row(Modifier.fillMaxWidth().clickable(onClick=onClick).padding(horizontal=20.dp,vertical=9.dp),verticalAlignment=Alignment.CenterVertically){

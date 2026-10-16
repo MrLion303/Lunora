@@ -13,7 +13,7 @@ Reproductor Android de música local, diseñado para escuchar la biblioteca de a
 Biblioteca local, búsqueda, favoritos, creación y edición de playlists, portadas elegidas, reproducción, cola, aleatorio, repetición, temporizador, tema claro/oscuro/sistema, controles de volumen y almacenamiento.
 
 ## Identidad visual
-Acentos morados, un resplandor morado ambiental muy tenue y estático, Quicksand como tipografía principal y Zen Maru Gothic para dispositivos configurados en japonés.
+El morado sigue siendo el color principal, acompañado por detalles puntuales en celeste y rosa. Conserva un resplandor morado ambiental muy tenue y estático, Quicksand como tipografía principal y Zen Maru Gothic para dispositivos configurados en japonés.
 
 ## Compilación
 Cada push a `main` ejecuta el workflow Android APK. Abre [Actions](https://github.com/MrLion303/Lunora/actions), entra en la ejecución y descarga el artefacto `Lunora-debug-apk`. Es un APK de pruebas; Google Play requiere una versión de publicación firmada y validación adicional.
