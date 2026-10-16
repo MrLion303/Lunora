@@ -3,6 +3,7 @@ package com.negativestudios.negativemusic
 import android.Manifest
 import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
@@ -813,6 +814,16 @@ private fun NegativeMusicApp() {
         }
         HorizontalDivider(color=AccentCyan.copy(alpha=.18f))
         BottomAction("Editar datos",Icons.Default.Edit,fg){metadataSong=s;metadataTitle=songTitle(s);metadataArtist=songArtist(s);metadataCover=songCover(s);menuSong=null}
+        YouTubeSearchAction("Buscar canción en YouTube",fg) {
+            val title = songTitle(s).ifBlank { File(s.path).nameWithoutExtension }
+            val searchUrl = "https://www.youtube.com/results?search_query=" + Uri.encode(title)
+            runCatching {
+                ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(searchUrl)))
+            }.onFailure {
+                toast = "No se pudo abrir YouTube."
+            }
+            menuSong = null
+        }
         BottomAction("Añadir a la fila",Icons.Default.PlaylistAdd,fg){queue(s);menuSong=null}
         if(page.startsWith("playlist:")) BottomAction("Eliminar de esta playlist",Icons.Default.Delete,fg){val pl=playlists.firstOrNull{page=="playlist:"+it.id};if(pl!=null)saveLists(playlists.map{if(it.id==pl.id)it.copy(songs=it.songs.filterNot{s.uri==it})else it});menuSong=null}
         BottomAction(if(s.uri in favorites)"Quitar de favoritos" else "Añadir a favoritos",Icons.Default.Favorite,fg){favorite(s);menuSong=null}
@@ -1028,6 +1039,21 @@ private fun copyPlaylistCover(context: Context, uri: Uri): String? {
 }
 
 @Composable private fun BottomAction(label:String,icon:androidx.compose.ui.graphics.vector.ImageVector,fg:Color,onClick:()->Unit){Row(Modifier.fillMaxWidth().clickable(onClick=onClick).padding(horizontal=22.dp,vertical=13.dp),verticalAlignment=Alignment.CenterVertically){Icon(icon,null,tint=if(fg==Color.White) AccentBlue else fg);Spacer(Modifier.width(18.dp));Text(label,color=fg,fontSize=15.sp)}}
+
+@Composable private fun YouTubeSearchAction(label: String, fg: Color, onClick: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 22.dp, vertical = 13.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Image(
+            painter = painterResource(R.drawable.youtube_logo),
+            contentDescription = "YouTube",
+            modifier = Modifier.size(width = 24.dp, height = 18.dp)
+        )
+        Spacer(Modifier.width(18.dp))
+        Text(label, color = fg, fontSize = 15.sp)
+    }
+}
 
 private fun readPlaylists(prefs: android.content.SharedPreferences): List<Playlist> = try {
     val a=JSONArray(prefs.getString("playlists","[]")?: "[]")
