@@ -11,7 +11,7 @@ import java.nio.ByteBuffer
  * The mixed signal is copied to both output channels, so audio stays centred on headphones
  * and speakers while preserving the player's normal stereo output format.
  */
-@UnstableApi
+@OptIn(UnstableApi::class)
 class MonoAudioProcessor(initiallyEnabled: Boolean) : BaseAudioProcessor() {
     @Volatile
     private var monoEnabled: Boolean = initiallyEnabled
