@@ -16,6 +16,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.LinearEasing
@@ -82,6 +84,9 @@ import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.Locale
+import java.io.File
+import java.util.UUID
+import android.webkit.MimeTypeMap
 import java.util.concurrent.ExecutionException
 
 private val AccentBlue = Color(0xFF9B7BFF)
@@ -90,6 +95,25 @@ private val AccentSky = Color(0xFF8EDCFF)
 private val AccentPink = Color(0xFFFFA9D6)
 private val QuicksandFamily = FontFamily(Font(R.font.quicksand_regular))
 private val ZenMaruGothicFamily = FontFamily(Font(R.font.zen_maru_gothic_regular))
+private val QuicksandTypography = Typography().let { base ->
+    Typography(
+        displayLarge = base.displayLarge.copy(fontFamily = QuicksandFamily),
+        displayMedium = base.displayMedium.copy(fontFamily = QuicksandFamily),
+        displaySmall = base.displaySmall.copy(fontFamily = QuicksandFamily),
+        headlineLarge = base.headlineLarge.copy(fontFamily = QuicksandFamily),
+        headlineMedium = base.headlineMedium.copy(fontFamily = QuicksandFamily),
+        headlineSmall = base.headlineSmall.copy(fontFamily = QuicksandFamily),
+        titleLarge = base.titleLarge.copy(fontFamily = QuicksandFamily),
+        titleMedium = base.titleMedium.copy(fontFamily = QuicksandFamily),
+        titleSmall = base.titleSmall.copy(fontFamily = QuicksandFamily),
+        bodyLarge = base.bodyLarge.copy(fontFamily = QuicksandFamily),
+        bodyMedium = base.bodyMedium.copy(fontFamily = QuicksandFamily),
+        bodySmall = base.bodySmall.copy(fontFamily = QuicksandFamily),
+        labelLarge = base.labelLarge.copy(fontFamily = QuicksandFamily),
+        labelMedium = base.labelMedium.copy(fontFamily = QuicksandFamily),
+        labelSmall = base.labelSmall.copy(fontFamily = QuicksandFamily)
+    )
+}
 private val Dark = Color(0xFF070B10)
 private val Panel = Color(0xFF0B1118)
 private val Gray = Color(0xFFB3C0CE)
@@ -154,7 +178,12 @@ private fun NegativeMusicApp() {
     var playing by remember { mutableStateOf(false) }
     var position by remember { mutableLongStateOf(0L) }
     var duration by remember { mutableLongStateOf(0L) }
-    var shuffle by remember { mutableStateOf(false) }
+    var individualShuffleMode by remember { mutableIntStateOf(0) } // 0 apagado, 1 normal, 2 mágico
+    var globalShuffleMode by remember { mutableIntStateOf(0) }
+    var queueIsGlobal by remember { mutableStateOf(false) }
+    var queueSourceUris by remember { mutableStateOf(emptyList<String>()) }
+    var queueScopeUris by remember { mutableStateOf(emptySet<String>()) }
+    var magicShuffleAnalysisBusy by remember { mutableStateOf(false) }
     var repeat by remember { mutableIntStateOf(Player.REPEAT_MODE_OFF) }
     var toast by remember { mutableStateOf("") }
     var createDialog by remember { mutableStateOf(false) }
@@ -248,35 +277,58 @@ private fun NegativeMusicApp() {
     fun songCover(s: Song) = prefs.getString("song_cover_${s.uri}", null) ?: ""
     fun displaySong(s: Song) = s.copy(title = songTitle(s), artist = songArtist(s))
     fun item(s: Song) = MediaItem.Builder().setMediaId(s.uri).setUri(Uri.parse(s.uri)).setMediaMetadata(MediaMetadata.Builder().setTitle(songTitle(s)).setArtist(songArtist(s)).setAlbumTitle(s.album).apply { songCover(s).takeIf { it.isNotBlank() }?.let { setArtworkUri(Uri.parse(it)) } }.build()).build()
-    fun play(list: List<Song>, start: Song? = null) {
+    fun play(list: List<Song>, start: Song? = null, global: Boolean = false) {
         val p = controller
-        if (list.isEmpty()) { toast = "No hay canciones para reproducir."; return }
+        val uniqueSongs = list.distinctBy { it.uri }
+        if (uniqueSongs.isEmpty()) { toast = "No hay canciones para reproducir."; return }
         if (p == null) { toast = "El reproductor se está iniciando."; return }
-        val chosen = start ?: list.first()
-        val chosenIndex = list.indexOfFirst { it.uri == chosen.uri }.coerceAtLeast(0)
-        val manuallyQueued = (0 until p.mediaItemCount).map { p.getMediaItemAt(it).mediaId }.filter { it in manualQueueUris && it != chosen.uri }.distinct().mapNotNull { uri -> songs.firstOrNull { it.uri == uri } }
+
+        if (global) individualShuffleMode = 0 else globalShuffleMode = 0
+        queueIsGlobal = global
+        val allowedUris = uniqueSongs.map { it.uri }.toSet()
+        val chosen = start?.takeIf { it.uri in allowedUris } ?: uniqueSongs.first()
+        val chosenIndex = uniqueSongs.indexOfFirst { it.uri == chosen.uri }.coerceAtLeast(0)
+        val mode = if (global) globalShuffleMode else individualShuffleMode
+        val manuallyQueued = (0 until p.mediaItemCount)
+            .map { p.getMediaItemAt(it).mediaId }
+            .filter { it in manualQueueUris && it != chosen.uri && it in allowedUris }
+            .distinct()
+            .mapNotNull { uri -> uniqueSongs.firstOrNull { it.uri == uri } }
         val queuedUris = manuallyQueued.map { it.uri }.toSet()
-        val remaining = list.drop(chosenIndex + 1).filter { it.uri != chosen.uri && it.uri !in queuedUris }
-        val rest = manuallyQueued + remaining
-        val ordered = listOf(chosen) + if (shuffle) rest.shuffled() else rest
+        val candidates = if (mode > 0) {
+            uniqueSongs.filter { it.uri != chosen.uri && it.uri !in queuedUris }
+        } else {
+            uniqueSongs.drop(chosenIndex + 1).filter { it.uri != chosen.uri && it.uri !in queuedUris }
+        }
+        val rest = (manuallyQueued + candidates).distinctBy { it.uri }
+        val orderedRest = if (mode > 0) rest.shuffled() else rest
+        queueSourceUris = (listOf(chosen) + rest).map { it.uri }
+        queueScopeUris = queueSourceUris.toSet()
+        val ordered = listOf(chosen) + orderedRest
         p.setMediaItems(ordered.map(::item), 0, 0L)
-        p.shuffleModeEnabled = false; manualQueueUris=queuedUris; p.repeatMode = repeat; p.prepare(); p.play(); now = chosen
+        p.shuffleModeEnabled = false
+        manualQueueUris = queuedUris
+        p.repeatMode = repeat
+        p.prepare()
+        p.play()
+        now = chosen
     }
     fun favorite(s: Song) = saveFavorites(if (s.uri in favorites) favorites - s.uri else favorites + s.uri)
-    fun queue(s: Song) { val p = controller; if (p == null) toast = "El reproductor se está iniciando." else if (p.mediaItemCount == 0) play(listOf(s)) else { var insertAt=(p.currentMediaItemIndex+1).coerceIn(0,p.mediaItemCount); while(insertAt<p.mediaItemCount && p.getMediaItemAt(insertAt).mediaId in manualQueueUris) insertAt++; p.addMediaItem(insertAt,item(s)); manualQueueUris=manualQueueUris+s.uri; toast = "Añadida a la fila." } }
-    fun toggleShuffleQueue() {
-        val p=controller ?: return
-        val next=!shuffle
-        shuffle=next
-        p.shuffleModeEnabled=false
-        if(p.mediaItemCount>1) {
-            val all=(0 until p.mediaItemCount).map{p.getMediaItemAt(it)}
-            val current=p.currentMediaItem
-            val pinned=all.filter{it.mediaId in manualQueueUris && it.mediaId!=current?.mediaId}
-            val movable=all.filter{it.mediaId !in manualQueueUris && it.mediaId!=current?.mediaId}
-            val ordered=if(next) movable.shuffled() else movable
-            val rebuilt=listOfNotNull(current)+ordered+pinned
-            if(rebuilt.isNotEmpty()){val currentIndex=rebuilt.indexOfFirst{it.mediaId==current?.mediaId}.coerceAtLeast(0);val savedPosition=p.currentPosition;p.setMediaItems(rebuilt,currentIndex,savedPosition);p.prepare();p.play()}
+    fun queue(s: Song) {
+        val p = controller
+        val activeMode = if (queueIsGlobal) globalShuffleMode else individualShuffleMode
+        if (activeMode > 0 && s.uri !in queueScopeUris) {
+            toast = "El aleatorio activo solo admite canciones de la lista seleccionada."
+        } else if (p == null) {
+            toast = "El reproductor se está iniciando."
+        } else if (p.mediaItemCount == 0) {
+            play(listOf(s))
+        } else {
+            var insertAt = (p.currentMediaItemIndex + 1).coerceIn(0, p.mediaItemCount)
+            while (insertAt < p.mediaItemCount && p.getMediaItemAt(insertAt).mediaId in manualQueueUris) insertAt++
+            p.addMediaItem(insertAt, item(s))
+            manualQueueUris = manualQueueUris + s.uri
+            toast = "Añadida a la fila."
         }
     }
     val selectedPlaylist = playlists.firstOrNull { page == "playlist:" + it.id }
@@ -307,7 +359,7 @@ private fun NegativeMusicApp() {
             else -> {page="Inicio";search=""}
         }
     }
-    MaterialTheme(colorScheme = if (dark) darkColorScheme(primary=AccentBlue, secondary=AccentSky, background=bg, surface=surface) else lightColorScheme(primary=AccentBlue, secondary=AccentSky, secondaryContainer=Color(0xFFDDF5FF), onSecondaryContainer=Color(0xFF15384A), surfaceVariant=Color(0xFFF0EAFF), background=bg, surface=surface), typography = Typography(defaultFontFamily = QuicksandFamily)) {
+    MaterialTheme(colorScheme = if (dark) darkColorScheme(primary=AccentBlue, secondary=AccentSky, background=bg, surface=surface) else lightColorScheme(primary=AccentBlue, secondary=AccentSky, secondaryContainer=Color(0xFFDDF5FF), onSecondaryContainer=Color(0xFF15384A), surfaceVariant=Color(0xFFF0EAFF), background=bg, surface=surface), typography = QuicksandTypography) {
         Column(Modifier.fillMaxSize().background(bg)) {
             if (!page.startsWith("playlist:")) Row(Modifier.fillMaxWidth().padding(horizontal=18.dp, vertical=12.dp), verticalAlignment=Alignment.CenterVertically) {
                 Image(
