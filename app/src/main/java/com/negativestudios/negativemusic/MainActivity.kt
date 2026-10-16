@@ -934,7 +934,7 @@ private fun SettingsPage(
                                     Column(Modifier.weight(1f),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.Center) {
                                         Text("%+d".format(value.toInt()),color=AccentBlue,fontSize=13.sp,fontWeight=FontWeight.Bold)
                                         Box(Modifier.height(270.dp).fillMaxWidth(),contentAlignment=Alignment.Center) {
-                                            Slider(value=value,onValueChange={onBand(index,it)},valueRange=-15f..15f,steps=29,modifier=Modifier.width(270.dp).height(270.dp).rotate(-90f),colors=SliderDefaults.colors(thumbColor=AccentBlue,activeTrackColor=AccentBlue,inactiveTrackColor=AccentCyan.copy(alpha=.18f)))
+                                            Slider(value=value,onValueChange={onBand(index,it)},valueRange=-15f..15f,steps=29,modifier=Modifier.width(320.dp).height(48.dp).rotate(-90f),colors=SliderDefaults.colors(thumbColor=AccentBlue,activeTrackColor=AccentBlue,inactiveTrackColor=AccentCyan.copy(alpha=.18f)))
                                         }
                                         Text(frequencies[index],color=sec,fontSize=11.sp,fontWeight=FontWeight.SemiBold)
                                     }
