@@ -9,6 +9,17 @@ import android.media.audiofx.Equalizer
  */
 object PlaybackAudioEffects {
     private var equalizer: Equalizer? = null
+    @Volatile private var monoProcessor: MonoAudioProcessor? = null
+
+    @Synchronized
+    fun registerMonoProcessor(processor: MonoAudioProcessor?) {
+        monoProcessor = processor
+    }
+
+    @Synchronized
+    fun setMonoEnabled(enabled: Boolean) {
+        monoProcessor?.setMonoEnabled(enabled)
+    }
 
     @Synchronized
     fun attach(context: Context, audioSessionId: Int) {
