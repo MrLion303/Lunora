@@ -7,6 +7,7 @@ import android.media.MediaCodec
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.net.Uri
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -215,6 +216,8 @@ object SmartShuffle {
             }
             if (sampleCount < outputRate / 2) return null
             return DecodedPcm(samples.copyOf(sampleCount), (outputRate / decimation).coerceAtLeast(1))
+        } catch (cancelled: CancellationException) {
+            throw cancelled
         } catch (_: Exception) {
             return null
         } finally {
