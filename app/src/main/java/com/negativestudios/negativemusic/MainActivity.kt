@@ -201,6 +201,7 @@ private fun NegativeMusicApp() {
     var metadataTitle by remember { mutableStateOf("") }
     var metadataArtist by remember { mutableStateOf("") }
     var metadataCover by remember { mutableStateOf("") }
+    var metadataCoverLoading by remember { mutableStateOf(false) }
     var addSong by remember { mutableStateOf<Song?>(null) }
     var playlistPickerSong by remember { mutableStateOf<Song?>(null) }
     var playlistDeleteTarget by remember { mutableStateOf<Playlist?>(null) }
@@ -489,6 +490,7 @@ private fun NegativeMusicApp() {
             showPlayer -> showPlayer=false
             showQueue -> showQueue=false
             menuSong != null -> menuSong=null
+            metadataSong != null -> { if (!metadataCoverLoading) metadataSong=null }
             showAddSongsDialog -> showAddSongsDialog=false
             createDialog -> { createDialog=false; addSong=null }
             editTarget != null -> editTarget=null
@@ -836,7 +838,7 @@ private fun NegativeMusicApp() {
             Spacer(Modifier.width(12.dp));Column(Modifier.weight(1f)){Text(s.title,color=fg,fontSize=13.sp,fontWeight=FontWeight.SemiBold,maxLines=1,overflow=TextOverflow.Ellipsis);Text(s.artist,color=secondary,fontSize=11.sp,maxLines=1,overflow=TextOverflow.Ellipsis)}
         }
         HorizontalDivider(color=AccentLavender.copy(alpha=.18f))
-        BottomAction("Editar datos",Icons.Default.Edit,fg){metadataSong=s;metadataTitle=songTitle(s);metadataArtist=songArtist(s);metadataCover=songCover(s);menuSong=null}
+        BottomAction("Editar datos",Icons.Default.Edit,fg){metadataSong=s;metadataTitle=songTitle(s);metadataArtist=songArtist(s);metadataCover=songCover(s);metadataCoverLoading=false;menuSong=null}
         YouTubeSearchAction("Buscar canción en YouTube",fg) {
             val title = songTitle(s).ifBlank { File(s.path).nameWithoutExtension }
             val searchUrl = "https://www.youtube.com/results?search_query=" + Uri.encode(title)
@@ -859,7 +861,7 @@ private fun NegativeMusicApp() {
 
     metadataSong?.let { s ->
         androidx.compose.ui.window.Dialog(
-            onDismissRequest = { metadataSong = null },
+            onDismissRequest = { if (!metadataCoverLoading) metadataSong = null },
             properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
         ) {
             Surface(Modifier.fillMaxWidth(.92f).heightIn(max=620.dp),shape=RoundedCornerShape(24.dp),color=surface,tonalElevation=10.dp) {
@@ -873,15 +875,15 @@ private fun NegativeMusicApp() {
                     }
                     OutlinedTextField(value=metadataTitle,onValueChange={metadataTitle=it},modifier=Modifier.fillMaxWidth(),singleLine=true,label={Text("Título")},colors=OutlinedTextFieldDefaults.colors(focusedTextColor=Color.White,unfocusedTextColor=Color.White,cursorColor=AccentPurple,focusedLabelColor=AccentPurple,unfocusedLabelColor=Gray))
                     OutlinedTextField(value=metadataArtist,onValueChange={metadataArtist=it},modifier=Modifier.fillMaxWidth(),singleLine=true,label={Text("Artista")},colors=OutlinedTextFieldDefaults.colors(focusedTextColor=Color.White,unfocusedTextColor=Color.White,cursorColor=AccentPurple,focusedLabelColor=AccentPurple,unfocusedLabelColor=Gray))
-                    val coverPicker=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()){uri->if(uri!=null)scope.launch{val saved=withContext(Dispatchers.IO){copyPlaylistCover(ctx,uri)};if(saved!=null)metadataCover=saved else toast="No se pudo guardar la imagen seleccionada."}}
+                    val coverPicker=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()){uri->if(uri!=null){metadataCoverLoading=true;scope.launch{val saved=withContext(Dispatchers.IO){copyPlaylistCover(ctx,uri)};if(saved!=null)metadataCover=saved else toast="No se pudo guardar la imagen seleccionada.";metadataCoverLoading=false}}}
                     if(metadataCover.isNotBlank()) {
                         PlaylistCoverImage(metadataCover,Modifier.fillMaxWidth().height(150.dp).clip(RoundedCornerShape(14.dp)),"Portada seleccionada",Color(0xFF201631),36.dp)
                     }
-                    OutlinedButton(onClick={coverPicker.launch(arrayOf("image/*"))},modifier=Modifier.fillMaxWidth()){
-                        Icon(Icons.Default.Image,null);Spacer(Modifier.width(8.dp));Text(if(metadataCover.isBlank()) "Elegir portada" else "Cambiar portada")
+                    OutlinedButton(onClick={coverPicker.launch(arrayOf("image/*"))},enabled=!metadataCoverLoading,modifier=Modifier.fillMaxWidth()){
+                        Icon(Icons.Default.Image,null);Spacer(Modifier.width(8.dp));Text(when { metadataCoverLoading -> "Guardando portada…"; metadataCover.isBlank() -> "Elegir portada"; else -> "Cambiar portada" })
                     }
                     Row(horizontalArrangement=Arrangement.spacedBy(10.dp)) {
-                        OutlinedButton(onClick={metadataSong=null},modifier=Modifier.weight(1f)){Text("Cancelar")}
+                        OutlinedButton(onClick={metadataSong=null},enabled=!metadataCoverLoading,modifier=Modifier.weight(1f)){Text("Cancelar")}
                         Button(
                             onClick={
                                 val uri = s.uri
@@ -893,7 +895,7 @@ private fun NegativeMusicApp() {
                                 metadataSong = null
                                 toast = "Datos guardados solo en Lunora."
                             },
-                            enabled=metadataTitle.isNotBlank() && metadataArtist.isNotBlank(),
+                            enabled=metadataTitle.isNotBlank() && metadataArtist.isNotBlank() && !metadataCoverLoading,
                             modifier=Modifier.weight(1f),
                             colors=ButtonDefaults.buttonColors(containerColor=AccentPurple,contentColor=Color.White)
                         ){Icon(Icons.Default.Save,null);Spacer(Modifier.width(6.dp));Text("Guardar")}
@@ -1215,7 +1217,7 @@ private fun PlaylistDialog(title:String,initialName:String,initialDesc:String,in
     var coverLoading by remember { mutableStateOf(false) }
     var coverError by remember { mutableStateOf(false) }
     val picker=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()){uri->if(uri!=null){coverLoading=true;coverError=false;scope.launch{val saved=withContext(Dispatchers.IO){copyPlaylistCover(context,uri)};if(saved!=null)cover=saved else coverError=true;coverLoading=false}}}
-    androidx.compose.ui.window.Dialog(onDismissRequest=onDismiss,properties=androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth=false)) {
+    androidx.compose.ui.window.Dialog(onDismissRequest={if(!coverLoading) onDismiss()},properties=androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth=false)) {
         Surface(modifier=Modifier.fillMaxWidth(0.92f).heightIn(max=640.dp),shape=RoundedCornerShape(26.dp),color=Panel,tonalElevation=10.dp) {
             Column(Modifier.padding(22.dp),verticalArrangement=Arrangement.spacedBy(14.dp)) {
                 Row(verticalAlignment=Alignment.CenterVertically) {
