@@ -239,7 +239,7 @@ private fun NegativeMusicApp() {
     val surface = if (dark) Panel else Color.White
     val secondary = if (dark) Gray else Color(0xFF666666)
 
-    fun configuredOutputVolume(): Float = (when (volume) { "Bajo" -> 0.55f; "Alto" -> 1f; else -> 0.8f }) * if (normalize) 0.85f else 1f
+    fun configuredOutputVolume(): Float = when (volume) { "Bajo" -> 0.55f; "Alto" -> 1f; else -> 0.8f }
 
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
         scope.launch { if (ok) songs = withContext(Dispatchers.IO) { scanMusic(ctx) }; loading = false }
@@ -518,7 +518,7 @@ private fun NegativeMusicApp() {
             }
             Box(Modifier.weight(1f).fillMaxWidth()) {
             when {
-                page == "Ajustes" -> SettingsPage(theme, settingsSection, { settingsSection = it }, { theme=it; prefs.edit().putString("theme",it).apply() }, crossfade, { crossfade=it; prefs.edit().putInt("crossfade",it.toInt()).apply() }, mono, { mono=it; prefs.edit().putBoolean("mono",it).apply(); PlaybackAudioEffects.setMonoEnabled(it) }, normalize, { normalize=it; prefs.edit().putBoolean("normalize",it).apply(); controller?.volume=configuredOutputVolume() }, volume, { volume=it; prefs.edit().putString("volume",it).apply(); controller?.volume=configuredOutputVolume() }, eqOn, { eqOn=it; prefs.edit().putBoolean("eq",it).apply(); PlaybackAudioEffects.setEnabled(it) }, eqBands, { index,value -> val updated=eqBands.toMutableList(); updated[index]=value; eqBands=updated; prefs.edit().putInt("eqBand$index",value.toInt()).apply(); PlaybackAudioEffects.applyBands(updated.map{it.toInt()}) }, songs.size, songs.sumOf{it.size}, appBytes, cacheBytes, storageRefreshKey, { scope.launch { withContext(Dispatchers.IO) { ctx.cacheDir.deleteRecursively(); ctx.cacheDir.mkdirs() }; storageRefreshKey++; toast="Caché limpiada." } }, { clearDataDialog=true })
+                page == "Ajustes" -> SettingsPage(theme, settingsSection, { settingsSection = it }, { theme=it; prefs.edit().putString("theme",it).apply() }, crossfade, { crossfade=it; prefs.edit().putInt("crossfade",it.toInt()).apply() }, mono, { mono=it; prefs.edit().putBoolean("mono",it).apply(); PlaybackAudioEffects.setMonoEnabled(it) }, normalize, { normalize=it; prefs.edit().putBoolean("normalize",it).apply(); PlaybackAudioEffects.setNormalizationEnabled(it); controller?.volume=configuredOutputVolume() }, volume, { volume=it; prefs.edit().putString("volume",it).apply(); controller?.volume=configuredOutputVolume() }, eqOn, { eqOn=it; prefs.edit().putBoolean("eq",it).apply(); PlaybackAudioEffects.setEnabled(it) }, eqBands, { index,value -> val updated=eqBands.toMutableList(); updated[index]=value; eqBands=updated; prefs.edit().putInt("eqBand$index",value.toInt()).apply(); PlaybackAudioEffects.applyBands(updated.map{it.toInt()}) }, songs.size, songs.sumOf{it.size}, appBytes, cacheBytes, storageRefreshKey, { scope.launch { withContext(Dispatchers.IO) { ctx.cacheDir.deleteRecursively(); ctx.cacheDir.mkdirs() }; storageRefreshKey++; toast="Caché limpiada." } }, { clearDataDialog=true })
                 page == "Buscar" -> Column(Modifier.fillMaxSize()) {
                     OutlinedTextField(search,{search=it},Modifier.fillMaxWidth().padding(horizontal=16.dp),placeholder={Text("¿Qué quieres escuchar?")},leadingIcon={Icon(Icons.Default.Search,null)},singleLine=true)
                     SongRows(visibleSongs,favorites,fg,secondary,now?.uri,dark,{songCover(it)},{play(visibleSongs,it);showPlayer=true},{menuSong=it},{favorite(it)},{queue(it)}, Modifier.weight(1f))
@@ -1292,7 +1292,7 @@ private fun SettingsPage(
         }
         if (section == null) {
             item { SettingsCategory("Apariencia", "Tema y aspecto de la aplicación", Icons.Default.Palette, fg, sec, card, dark) { onSection("Apariencia") } }
-            item { SettingsCategory("Reproducción", "Crossfade, audio mono, volumen y ecualizador", Icons.Default.GraphicEq, fg, sec, card, dark) { onSection("Reproducción") } }
+            item { SettingsCategory("Reproducción", "Fundido entre canciones, normalización, audio mono y ecualizador", Icons.Default.GraphicEq, fg, sec, card, dark) { onSection("Reproducción") } }
             item { SettingsCategory("Almacenamiento", "Espacio del dispositivo, música y caché", Icons.Default.Storage, fg, sec, card, dark) { onSection("Almacenamiento") } }
             item { SettingsCategory("Datos y privacidad", "Borrar caché o datos locales", Icons.Default.Security, fg, sec, card, dark) { onSection("Datos y privacidad") } }
             item { SettingsCategory("Acerca de", "Versión y detalles de Lunora", Icons.Default.Info, fg, sec, card, dark) { onSection("Acerca de") } }
@@ -1321,12 +1321,12 @@ private fun SettingsPage(
             "Reproducción" -> item {
                 Card(colors = CardDefaults.cardColors(containerColor = card)) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text("Crossfade: " + crossfade.toInt() + " s", color = fg, fontWeight = FontWeight.SemiBold)
+                        Text("Fundido entre canciones: " + crossfade.toInt() + " s", color = fg, fontWeight = FontWeight.SemiBold)
                         Slider(value = crossfade, onValueChange = onCrossfade, valueRange = 0f..12f, steps = 11, colors = SliderDefaults.colors(thumbColor = AccentPurple, activeTrackColor = AccentPurple))
-                        Text("La preferencia se guarda, pero la mezcla cruzada real aún necesita integrarse en el motor de reproducción.", color = sec, fontSize = 12.sp)
+                        Text("Baja el volumen al final de la canción y lo recupera gradualmente al empezar la siguiente. No superpone dos canciones.", color = sec, fontSize = 12.sp)
                         HorizontalDivider(color = AccentLavender.copy(alpha = .2f))
                         SettingsSwitch("Audio mono", "Mezcla los canales izquierdo y derecho y reproduce la mezcla por ambos lados.", mono, onMono, fg, sec)
-                        SettingsSwitch("Atenuación de volumen", "Reduce la salida general un 15 %; no iguala la sonoridad entre canciones.", normalize, onNormalize, fg, sec)
+                        SettingsSwitch("Normalización de sonoridad", "Ajusta la ganancia durante la reproducción para reducir diferencias de volumen entre canciones y limitar picos.", normalize, onNormalize, fg, sec)
                         Text("Nivel de volumen", color = fg, fontWeight = FontWeight.SemiBold)
                         Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             listOf("Bajo", "Normal", "Alto").forEach { FilterChip(selected = volume == it, onClick = { onVolume(it) }, label = { Text(it) }, colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentPurple.copy(alpha = .2f), selectedLabelColor = fg)) }
