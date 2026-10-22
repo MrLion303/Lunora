@@ -1138,7 +1138,7 @@ private fun PlaylistDialog(title:String,initialName:String,initialDesc:String,in
     var desc by remember { mutableStateOf(initialDesc) }
     var cover by remember { mutableStateOf(initialCover) }
     val context=LocalContext.current
-    val picker=rememberLauncherForActivityResult(ActivityResultContracts.GetContent()){uri->if(uri!=null)cover=copyPlaylistCover(context,uri) ?: uri.toString()}
+    val picker=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()){uri->if(uri!=null){val saved=copyPlaylistCover(context,uri);if(saved!=null)cover=saved}}
     androidx.compose.ui.window.Dialog(onDismissRequest=onDismiss,properties=androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth=false)) {
         Surface(modifier=Modifier.fillMaxWidth(0.92f).heightIn(max=640.dp),shape=RoundedCornerShape(26.dp),color=Panel,tonalElevation=10.dp) {
             Column(Modifier.padding(22.dp),verticalArrangement=Arrangement.spacedBy(14.dp)) {
