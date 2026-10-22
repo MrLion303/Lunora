@@ -223,6 +223,7 @@ private fun NegativeMusicApp() {
     var eqOn by remember { mutableStateOf(prefs.getBoolean("eq", false)) }
     var eqBands by remember { mutableStateOf((0..4).map { prefs.getInt("eqBand$it", 0).toFloat() }) }
     var clearDataDialog by remember { mutableStateOf(false) }
+    var clearingData by remember { mutableStateOf(false) }
     var outputDialog by remember { mutableStateOf(false) }
     var outputNames by remember { mutableStateOf(emptyList<String>()) }
     var appBytes by remember { mutableLongStateOf(0L) }
@@ -348,12 +349,12 @@ private fun NegativeMusicApp() {
     fun queue(s: Song) {
         val p = controller
         val activeMode = if (queueIsGlobal) globalShuffleMode else individualShuffleMode
-        if (activeMode > 0 && s.uri !in queueScopeUris) {
-            toast = "El aleatorio activo solo admite canciones de la lista seleccionada."
-        } else if (p == null) {
+        if (p == null) {
             toast = "El reproductor se está iniciando."
         } else if (p.mediaItemCount == 0) {
             play(listOf(s))
+        } else if (activeMode > 0 && s.uri !in queueScopeUris) {
+            toast = "El aleatorio activo solo admite canciones de la lista seleccionada."
         } else {
             var insertAt = (p.currentMediaItemIndex + 1).coerceIn(0, p.mediaItemCount)
             while (insertAt < p.mediaItemCount && p.getMediaItemAt(insertAt).mediaId in manualQueueUris) insertAt++
@@ -980,7 +981,57 @@ private fun NegativeMusicApp() {
     }
     if (showTimer) AlertDialog(onDismissRequest={showTimer=false},title={Text("Apagado automático")},text={Column{Text("Detener después de $timerMins minutos");Slider(value=timerMins.toFloat(),onValueChange={timerMins=it.toInt()},valueRange=5f..180f,steps=34)}},confirmButton={TextButton(onClick={deadline=System.currentTimeMillis()+timerMins*60000L;showTimer=false;toast="Temporizador activado."}){Text("Activar")}},dismissButton={TextButton(onClick={deadline=0;showTimer=false}){Text("Cancelar")}})
     if (outputDialog) androidx.compose.material3.ModalBottomSheet(onDismissRequest={outputDialog=false},containerColor=surface,contentColor=fg) { Text("Salidas de audio",Modifier.padding(horizontal=22.dp,vertical=12.dp),fontSize=22.sp,fontWeight=FontWeight.Bold,color=fg); if(outputNames.isEmpty()) Text("No se detectaron salidas disponibles.",Modifier.padding(22.dp),color=secondary) else outputNames.distinct().forEach{Text("• $it",Modifier.fillMaxWidth().padding(horizontal=22.dp,vertical=8.dp),color=fg)}; Text("Para cambiar de salida, utiliza también el selector de audio de Android.",Modifier.padding(22.dp),fontSize=12.sp,color=secondary); Spacer(Modifier.height(18.dp)) }
-    if (clearDataDialog) AlertDialog(onDismissRequest={clearDataDialog=false},title={Text("Limpiar almacenamiento")},text={Text("Se borrarán playlists, favoritos y preferencias. Las canciones originales del teléfono no se eliminarán.")},confirmButton={TextButton(onClick={prefs.edit().clear().apply();saveLists(emptyList());saveFavorites(emptySet());theme="dark";crossfade=0f;mono=false;normalize=false;volume="Normal";eqOn=false;(0..4).forEach{prefs.edit().putInt("eqBand$it",0).apply()};eqBands=listOf(0f,0f,0f,0f,0f);PlaybackAudioEffects.applyBands(listOf(0,0,0,0,0));PlaybackAudioEffects.setEnabled(false);PlaybackAudioEffects.setMonoEnabled(false);individualShuffleMode=0;globalShuffleMode=0;queueIsGlobal=false;queueSourceUris=emptyList();queueScopeUris=emptySet();clearDataDialog=false;toast="Datos de la app limpiados."}){Text("Limpiar datos")}},dismissButton={TextButton(onClick={clearDataDialog=false}){Text("Cancelar")}})
+    if (clearDataDialog) AlertDialog(
+        onDismissRequest = { if (!clearingData) clearDataDialog = false },
+        title = { Text("Limpiar almacenamiento") },
+        text = { Text(if (clearingData) "Eliminando datos locales…" else "Se borrarán playlists, favoritos y preferencias. Las canciones originales del teléfono no se eliminarán.") },
+        confirmButton = {
+            TextButton(
+                enabled = !clearingData,
+                onClick = {
+                    if (!clearingData) {
+                        clearingData = true
+                        scope.launch {
+                            withContext(Dispatchers.IO) {
+                                File(ctx.filesDir, "playlist_covers").deleteRecursively()
+                            }
+                            prefs.edit().clear().apply()
+                            saveLists(emptyList())
+                            saveFavorites(emptySet())
+                            theme = "dark"
+                            crossfade = 0f
+                            mono = false
+                            normalize = false
+                            volume = "Normal"
+                            eqOn = false
+                            (0..4).forEach { prefs.edit().putInt("eqBand$it", 0).apply() }
+                            eqBands = listOf(0f, 0f, 0f, 0f, 0f)
+                            PlaybackAudioEffects.applyBands(listOf(0, 0, 0, 0, 0))
+                            PlaybackAudioEffects.setEnabled(false)
+                            PlaybackAudioEffects.setMonoEnabled(false)
+                            controller?.volume = configuredOutputVolume()
+                            repeat = Player.REPEAT_MODE_OFF
+                            controller?.repeatMode = repeat
+                            deadline = 0L
+                            individualShuffleMode = 0
+                            globalShuffleMode = 0
+                            queueIsGlobal = false
+                            queueSourceUris = emptyList()
+                            queueScopeUris = emptySet()
+                            manualQueueUris = emptySet()
+                            storageRefreshKey++
+                            clearingData = false
+                            clearDataDialog = false
+                            toast = "Datos de la app limpiados."
+                        }
+                    }
+                }
+            ) { Text(if (clearingData) "Limpiando…" else "Limpiar datos") }
+        },
+        dismissButton = {
+            TextButton(enabled = !clearingData, onClick = { clearDataDialog = false }) { Text("Cancelar") }
+        }
+    )
 }}
 
 
