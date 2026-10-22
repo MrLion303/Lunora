@@ -512,7 +512,7 @@ private fun NegativeMusicApp() {
             }
             Box(Modifier.weight(1f).fillMaxWidth()) {
             when {
-                page == "Ajustes" -> SettingsPage(theme, settingsSection, { settingsSection = it }, { theme=it; prefs.edit().putString("theme",it).apply() }, crossfade, { crossfade=it; prefs.edit().putInt("crossfade",it.toInt()).apply() }, mono, { mono=it; prefs.edit().putBoolean("mono",it).apply(); PlaybackAudioEffects.setMonoEnabled(it) }, normalize, { normalize=it; prefs.edit().putBoolean("normalize",it).apply(); controller?.volume=configuredOutputVolume() }, volume, { volume=it; prefs.edit().putString("volume",it).apply(); controller?.volume=configuredOutputVolume() }, eqOn, { eqOn=it; prefs.edit().putBoolean("eq",it).apply(); PlaybackAudioEffects.setEnabled(it) }, eqBands, { index,value -> val updated=eqBands.toMutableList(); updated[index]=value; eqBands=updated; prefs.edit().putInt("eqBand$index",value.toInt()).apply(); PlaybackAudioEffects.applyBands(updated.map{it.toInt()}) }, songs.size, songs.sumOf{it.size}, appBytes, cacheBytes, { scope.launch { withContext(Dispatchers.IO) { ctx.cacheDir.deleteRecursively(); ctx.cacheDir.mkdirs() }; storageRefreshKey++; toast="Caché limpiada." } }, { clearDataDialog=true })
+                page == "Ajustes" -> SettingsPage(theme, settingsSection, { settingsSection = it }, { theme=it; prefs.edit().putString("theme",it).apply() }, crossfade, { crossfade=it; prefs.edit().putInt("crossfade",it.toInt()).apply() }, mono, { mono=it; prefs.edit().putBoolean("mono",it).apply(); PlaybackAudioEffects.setMonoEnabled(it) }, normalize, { normalize=it; prefs.edit().putBoolean("normalize",it).apply(); controller?.volume=configuredOutputVolume() }, volume, { volume=it; prefs.edit().putString("volume",it).apply(); controller?.volume=configuredOutputVolume() }, eqOn, { eqOn=it; prefs.edit().putBoolean("eq",it).apply(); PlaybackAudioEffects.setEnabled(it) }, eqBands, { index,value -> val updated=eqBands.toMutableList(); updated[index]=value; eqBands=updated; prefs.edit().putInt("eqBand$index",value.toInt()).apply(); PlaybackAudioEffects.applyBands(updated.map{it.toInt()}) }, songs.size, songs.sumOf{it.size}, appBytes, cacheBytes, storageRefreshKey, { scope.launch { withContext(Dispatchers.IO) { ctx.cacheDir.deleteRecursively(); ctx.cacheDir.mkdirs() }; storageRefreshKey++; toast="Caché limpiada." } }, { clearDataDialog=true })
                 page == "Buscar" -> Column(Modifier.fillMaxSize()) {
                     OutlinedTextField(search,{search=it},Modifier.fillMaxWidth().padding(horizontal=16.dp),placeholder={Text("¿Qué quieres escuchar?")},leadingIcon={Icon(Icons.Default.Search,null)},singleLine=true)
                     SongRows(visibleSongs,favorites,fg,secondary,now?.uri,dark,{songCover(it)},{play(visibleSongs,it);showPlayer=true},{menuSong=it},{favorite(it)},{queue(it)}, Modifier.weight(1f))
@@ -545,7 +545,7 @@ private fun NegativeMusicApp() {
                             }
                         } else {
                             item { Text("Tus canciones favoritas",Modifier.padding(start=20.dp,top=12.dp,bottom=6.dp),color=secondary,fontSize=13.sp) }
-                            items(songs.filter{it.uri in favorites},key={it.uri}) { song -> Row(Modifier.fillMaxWidth().clickable{play(songs.filter{it.uri in favorites},song);showPlayer=true}.padding(horizontal=18.dp,vertical=8.dp),verticalAlignment=Alignment.CenterVertically){Box(Modifier.size(46.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceVariant),contentAlignment=Alignment.Center){Icon(Icons.Default.MusicNote,null,tint=AccentPurple)};Spacer(Modifier.width(12.dp));Column(Modifier.weight(1f)){Text(song.title,color=fg,maxLines=1);Text(song.artist,color=secondary,fontSize=12.sp,maxLines=1)};IconButton(onClick={menuSong=song}){Icon(Icons.Default.MoreVert,null,tint=secondary)}} }
+                            items(songs.filter{it.uri in favorites}.map(::displaySong),key={it.uri}) { song -> Row(Modifier.fillMaxWidth().clickable{play(songs.filter{it.uri in favorites},song);showPlayer=true}.padding(horizontal=18.dp,vertical=8.dp),verticalAlignment=Alignment.CenterVertically){if(songCover(song).isNotBlank()) PlaylistCoverImage(songCover(song),Modifier.size(46.dp).clip(RoundedCornerShape(8.dp)),"Carátula de ${song.title}",MaterialTheme.colorScheme.surfaceVariant,24.dp) else Box(Modifier.size(46.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceVariant),contentAlignment=Alignment.Center){Icon(Icons.Default.MusicNote,null,tint=AccentPurple)};Spacer(Modifier.width(12.dp));Column(Modifier.weight(1f)){Text(song.title,color=fg,maxLines=1);Text(song.artist,color=secondary,fontSize=12.sp,maxLines=1)};IconButton(onClick={menuSong=song}){Icon(Icons.Default.MoreVert,null,tint=secondary)}} }
                         }
                     }
                     Row(
@@ -1250,14 +1250,14 @@ private fun SettingsPage(
     crossfade: Float, onCrossfade: (Float) -> Unit, mono: Boolean, onMono: (Boolean) -> Unit,
     normalize: Boolean, onNormalize: (Boolean) -> Unit, volume: String, onVolume: (String) -> Unit,
     eq: Boolean, onEq: (Boolean) -> Unit, eqBands: List<Float>, onBand: (Int, Float) -> Unit, songCount: Int, songBytes: Long, appBytes: Long,
-    cacheBytes: Long, onCache: () -> Unit, onClearData: () -> Unit
+    cacheBytes: Long, storageRefreshKey: Int, onCache: () -> Unit, onClearData: () -> Unit
 ) {
     val systemDark = isSystemInDarkTheme()
     val dark = when (theme) { "light" -> false; "system" -> systemDark; else -> true }
     val fg = if (dark) Color.White else Color(0xFF111820)
     val sec = if (dark) Color(0xFFB3C0CE) else Color(0xFF596675)
     val card = if (dark) Panel else Color.White
-    val storage = remember {
+    val storage = remember(storageRefreshKey) {
         runCatching {
             val stat = StatFs(Environment.getDataDirectory().path)
             val totalBytes = stat.blockCountLong * stat.blockSizeLong
@@ -1316,7 +1316,7 @@ private fun SettingsPage(
                         Text("La preferencia se guarda, pero la mezcla cruzada real aún necesita integrarse en el motor de reproducción.", color = sec, fontSize = 12.sp)
                         HorizontalDivider(color = AccentLavender.copy(alpha = .2f))
                         SettingsSwitch("Audio mono", "Mezcla los canales izquierdo y derecho y reproduce la mezcla por ambos lados.", mono, onMono, fg, sec)
-                        SettingsSwitch("Normalización de volumen", "El ajuste actual cambia el nivel de salida, no analiza la sonoridad de cada canción.", normalize, onNormalize, fg, sec)
+                        SettingsSwitch("Atenuación de volumen", "Reduce la salida general un 15 %; no iguala la sonoridad entre canciones.", normalize, onNormalize, fg, sec)
                         Text("Nivel de volumen", color = fg, fontWeight = FontWeight.SemiBold)
                         Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             listOf("Bajo", "Normal", "Alto").forEach { FilterChip(selected = volume == it, onClick = { onVolume(it) }, label = { Text(it) }, colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentPurple.copy(alpha = .2f), selectedLabelColor = fg)) }
