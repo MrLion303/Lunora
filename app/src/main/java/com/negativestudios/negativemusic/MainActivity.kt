@@ -512,7 +512,7 @@ private fun NegativeMusicApp() {
                 page == "Ajustes" -> SettingsPage(theme, settingsSection, { settingsSection = it }, { theme=it; prefs.edit().putString("theme",it).apply() }, crossfade, { crossfade=it; prefs.edit().putInt("crossfade",it.toInt()).apply() }, mono, { mono=it; prefs.edit().putBoolean("mono",it).apply(); PlaybackAudioEffects.setMonoEnabled(it) }, normalize, { normalize=it; prefs.edit().putBoolean("normalize",it).apply(); controller?.volume=configuredOutputVolume() }, volume, { volume=it; prefs.edit().putString("volume",it).apply(); controller?.volume=configuredOutputVolume() }, eqOn, { eqOn=it; prefs.edit().putBoolean("eq",it).apply(); PlaybackAudioEffects.setEnabled(it) }, eqBands, { index,value -> val updated=eqBands.toMutableList(); updated[index]=value; eqBands=updated; prefs.edit().putInt("eqBand$index",value.toInt()).apply(); PlaybackAudioEffects.applyBands(updated.map{it.toInt()}) }, songs.size, songs.sumOf{it.size}, appBytes, cacheBytes, { scope.launch { withContext(Dispatchers.IO) { ctx.cacheDir.deleteRecursively(); ctx.cacheDir.mkdirs() }; storageRefreshKey++; toast="Caché limpiada." } }, { clearDataDialog=true })
                 page == "Buscar" -> Column(Modifier.fillMaxSize()) {
                     OutlinedTextField(search,{search=it},Modifier.fillMaxWidth().padding(horizontal=16.dp),placeholder={Text("¿Qué quieres escuchar?")},leadingIcon={Icon(Icons.Default.Search,null)},singleLine=true)
-                    SongRows(visibleSongs,favorites,fg,secondary,now?.uri,dark,{play(visibleSongs,it);showPlayer=true},{menuSong=it},{favorite(it)},{queue(it)}, Modifier.weight(1f))
+                    SongRows(visibleSongs,favorites,fg,secondary,now?.uri,dark,{songCover(it)},{play(visibleSongs,it);showPlayer=true},{menuSong=it},{favorite(it)},{queue(it)}, Modifier.weight(1f))
                 }
                 page == "Biblioteca" -> Column(Modifier.fillMaxSize()) {
                     Row(Modifier.fillMaxWidth().padding(horizontal=18.dp,vertical=10.dp),verticalAlignment=Alignment.CenterVertically) {
@@ -576,7 +576,7 @@ private fun NegativeMusicApp() {
                         Column(Modifier.weight(1f)){Text("Descargas",color=fg,fontSize=26.sp,fontWeight=FontWeight.ExtraBold);Text("${downloadedSongs.size} canciones",color=secondary,fontSize=12.sp)}
                         IconButton(onClick={scope.launch { loading=true; songs=withContext(Dispatchers.IO){scanMusic(ctx)}; loading=false }}){Icon(Icons.Default.Refresh,null,tint=fg)}
                     }
-                    SongRows(downloadedSongs,favorites,fg,secondary,now?.uri,dark,{play(downloadedSongs,it);showPlayer=true},{menuSong=it},{favorite(it)},{queue(it)},Modifier.weight(1f))
+                    SongRows(downloadedSongs.map(::displaySong),favorites,fg,secondary,now?.uri,dark,{songCover(it)},{play(downloadedSongs,it);showPlayer=true},{menuSong=it},{favorite(it)},{queue(it)},Modifier.weight(1f))
                 }
                 page.startsWith("playlist:") -> LazyColumn(Modifier.fillMaxSize(),contentPadding=PaddingValues(bottom=14.dp)) {
                     item {
@@ -663,7 +663,7 @@ private fun NegativeMusicApp() {
                          }
                      }
                      }
-                 page == "Favoritos" -> Column(Modifier.fillMaxSize()) { Text("Tus canciones favoritas",Modifier.padding(20.dp),color=fg,fontSize=26.sp,fontWeight=FontWeight.Bold); SongRows(songs.filter{it.uri in favorites},favorites,fg,secondary,now?.uri,dark,{play(songs.filter{it.uri in favorites},it);showPlayer=true},{menuSong=it},{favorite(it)},{queue(it)}, Modifier.weight(1f)) }
+                 page == "Favoritos" -> Column(Modifier.fillMaxSize()) { Text("Tus canciones favoritas",Modifier.padding(20.dp),color=fg,fontSize=26.sp,fontWeight=FontWeight.Bold); SongRows(visibleSongs,favorites,fg,secondary,now?.uri,dark,{songCover(it)},{play(songs.filter{it.uri in favorites},it);showPlayer=true},{menuSong=it},{favorite(it)},{queue(it)}, Modifier.weight(1f)) }
                 else -> LazyColumn(Modifier.fillMaxSize(),contentPadding=PaddingValues(bottom=8.dp)) {
                     item { Column(Modifier.padding(horizontal=20.dp, vertical=10.dp)) { Text("Tu música, tu mundo.",color=fg,fontSize=28.sp,fontWeight=FontWeight.ExtraBold); Text(if(loading)"Buscando música…" else "${songs.size} canciones en este dispositivo",color=secondary) } }
                     item { Row(Modifier.fillMaxWidth().padding(16.dp),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
@@ -692,7 +692,7 @@ private fun NegativeMusicApp() {
             if (now != null) {
                 Row(Modifier.fillMaxWidth().padding(horizontal=8.dp,vertical=5.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surfaceVariant).padding(8.dp),verticalAlignment=Alignment.CenterVertically) {
                     Row(Modifier.weight(1f).clip(RoundedCornerShape(8.dp)).clickable { showPlayer = true },verticalAlignment=Alignment.CenterVertically) {
-                        Icon(Icons.Default.Album,null,tint=AccentBlue,modifier=Modifier.size(38.dp))
+                        if (songCover(now!!).isNotBlank()) PlaylistCoverImage(songCover(now!!),Modifier.size(38.dp).clip(RoundedCornerShape(8.dp)),"Carátula de ${songTitle(now!!)}",MaterialTheme.colorScheme.surfaceVariant,24.dp) else Icon(Icons.Default.Album,null,tint=AccentBlue,modifier=Modifier.size(38.dp))
                         Spacer(Modifier.width(9.dp))
                         Box(Modifier.weight(1f).clip(RoundedCornerShape(4.dp))){
                             Column(Modifier.fillMaxWidth()){
@@ -934,7 +934,7 @@ private fun NegativeMusicApp() {
                     }
                     Spacer(Modifier.height(12.dp))
                     Box(Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(22.dp)).background(Brush.linearGradient(listOf(Color(0xFF123C67),Color(0xFF071018))))) {
-                        Icon(Icons.Default.Album,null,tint=AccentCyan,modifier=Modifier.size(100.dp).align(Alignment.Center))
+                        if (songCover(now!!).isNotBlank()) PlaylistCoverImage(songCover(now!!),Modifier.fillMaxSize(),"Carátula de ${songTitle(now!!)}",Color(0xFF071018),100.dp) else Icon(Icons.Default.Album,null,tint=AccentCyan,modifier=Modifier.size(100.dp).align(Alignment.Center))
                         Row(Modifier.fillMaxSize()){
                             Box(Modifier.weight(1f).fillMaxHeight().pointerInput(Unit){detectTapGestures(onDoubleTap={seekBy(-5,-1)})})
                             Box(Modifier.weight(1f).fillMaxHeight().pointerInput(Unit){detectTapGestures(onDoubleTap={seekBy(5,1)})})
@@ -1150,13 +1150,13 @@ private fun SwipeQueueContainer(song: Song, onQueue: () -> Unit, content: @Compo
 }
 
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
-@Composable private fun SongRows(songs:List<Song>,favorites:Set<String>,fg:Color,secondary:Color,current:String?,dark:Boolean,play:(Song)->Unit,menu:(Song)->Unit,favorite:(Song)->Unit,enqueue:(Song)->Unit,modifier: Modifier = Modifier.fillMaxWidth()) {
+@Composable private fun SongRows(songs:List<Song>,favorites:Set<String>,fg:Color,secondary:Color,current:String?,dark:Boolean,cover:(Song)->String,play:(Song)->Unit,menu:(Song)->Unit,favorite:(Song)->Unit,enqueue:(Song)->Unit,modifier: Modifier = Modifier.fillMaxWidth()) {
     if(songs.isEmpty()) Box(Modifier.fillMaxWidth().padding(28.dp),contentAlignment=Alignment.Center){Text("Todavía no hay canciones aquí.",color=secondary)}
     else LazyColumn(modifier,contentPadding=PaddingValues(bottom=12.dp)){
         items(songs,key={it.uri}){s->
             SwipeQueueContainer(s,{enqueue(s)}) {
                 Row(Modifier.fillMaxWidth().combinedClickable(onClick={play(s)},onLongClick={menu(s)}).padding(horizontal=16.dp,vertical=7.dp),verticalAlignment=Alignment.CenterVertically){
-                    Box(Modifier.size(50.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceVariant),contentAlignment=Alignment.Center){Icon(Icons.Default.Album,null,tint=AccentBlue,modifier=Modifier.size(28.dp))}
+                    if (cover(s).isNotBlank()) PlaylistCoverImage(cover(s),Modifier.size(50.dp).clip(RoundedCornerShape(8.dp)),"Carátula de ${s.title}",MaterialTheme.colorScheme.surfaceVariant,28.dp) else Box(Modifier.size(50.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceVariant),contentAlignment=Alignment.Center){Icon(Icons.Default.Album,null,tint=AccentBlue,modifier=Modifier.size(28.dp))}
                     Spacer(Modifier.width(11.dp));Column(Modifier.weight(1f)){Text(s.title,color=if(s.uri==current)AccentBlue else fg,fontWeight=FontWeight.SemiBold,maxLines=1,overflow=TextOverflow.Ellipsis);Text("${s.artist} · ${time(s.duration)}",color=secondary,fontSize=12.sp,maxLines=1,overflow=TextOverflow.Ellipsis)}
                     if(s.uri in favorites)Icon(Icons.Default.Favorite,null,tint=AccentBlue,modifier=Modifier.size(16.dp))
                     IconButton(onClick={menu(s)}){Icon(Icons.Default.MoreVert,"Más opciones",tint=secondary)}
