@@ -90,8 +90,8 @@ import java.util.UUID
 import android.webkit.MimeTypeMap
 import java.util.concurrent.ExecutionException
 
-private val AccentBlue = Color(0xFF9B7BFF)
-private val AccentCyan = Color(0xFFC4B5FD)
+private val AccentPurple = Color(0xFF9B7BFF)
+private val AccentLavender = Color(0xFFC4B5FD)
 private val AccentSky = Color(0xFF8EDCFF)
 private val AccentPink = Color(0xFFFFA9D6)
 private val QuicksandFamily = FontFamily(Font(R.font.quicksand_regular))
@@ -500,7 +500,7 @@ private fun NegativeMusicApp() {
             else -> {page="Inicio";search=""}
         }
     }
-    MaterialTheme(colorScheme = if (dark) darkColorScheme(primary=AccentBlue, secondary=AccentSky, background=bg, surface=surface) else lightColorScheme(primary=AccentBlue, secondary=AccentSky, secondaryContainer=Color(0xFFDDF5FF), onSecondaryContainer=Color(0xFF15384A), surfaceVariant=Color(0xFFF0EAFF), background=bg, surface=surface), typography = if (Locale.getDefault().language == "ja") ZenMaruGothicTypography else QuicksandTypography) {
+    MaterialTheme(colorScheme = if (dark) darkColorScheme(primary=AccentPurple, secondary=AccentSky, background=bg, surface=surface) else lightColorScheme(primary=AccentPurple, secondary=AccentSky, secondaryContainer=Color(0xFFDDF5FF), onSecondaryContainer=Color(0xFF15384A), surfaceVariant=Color(0xFFF0EAFF), background=bg, surface=surface), typography = if (Locale.getDefault().language == "ja") ZenMaruGothicTypography else QuicksandTypography) {
         Column(Modifier.fillMaxSize().background(bg)) {
             if (!page.startsWith("playlist:")) Row(Modifier.fillMaxWidth().padding(horizontal=18.dp, vertical=12.dp), verticalAlignment=Alignment.CenterVertically) {
                 Image(
@@ -520,11 +520,11 @@ private fun NegativeMusicApp() {
                 page == "Biblioteca" -> Column(Modifier.fillMaxSize()) {
                     Row(Modifier.fillMaxWidth().padding(horizontal=18.dp,vertical=10.dp),verticalAlignment=Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)){Text("Tu biblioteca",color=fg,fontSize=27.sp,fontWeight=FontWeight.ExtraBold);Text("${playlists.size} playlists",color=secondary,fontSize=13.sp)}
-                        IconButton(onClick={val next=if(playlistView=="list") "gallery" else "list";playlistView=next;prefs.edit().putString("playlist_view",next).apply()}) { Icon(if(playlistView=="list") Icons.Default.GridView else Icons.Default.ViewList, if(playlistView=="list") "Ver en galería" else "Ver en lista", tint=AccentBlue) }
-                        Button(onClick={playlistOrigin=page;createDialog=true},colors=ButtonDefaults.buttonColors(containerColor=AccentBlue,contentColor=Color.White)){Icon(Icons.Default.Add,null);Spacer(Modifier.width(5.dp));Text("Crear")}
+                        IconButton(onClick={val next=if(playlistView=="list") "gallery" else "list";playlistView=next;prefs.edit().putString("playlist_view",next).apply()}) { Icon(if(playlistView=="list") Icons.Default.GridView else Icons.Default.ViewList, if(playlistView=="list") "Ver en galería" else "Ver en lista", tint=AccentPurple) }
+                        Button(onClick={playlistOrigin=page;createDialog=true},colors=ButtonDefaults.buttonColors(containerColor=AccentPurple,contentColor=Color.White)){Icon(Icons.Default.Add,null);Spacer(Modifier.width(5.dp));Text("Crear")}
                     }
                     Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal=14.dp,vertical=4.dp),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                        listOf("Playlists","Favoritos").forEach { tab -> FilterChip(selected=libraryTab==tab,onClick={libraryTab=tab},label={Text(tab)},colors=FilterChipDefaults.filterChipColors(selectedContainerColor=AccentBlue.copy(alpha=.2f),selectedLabelColor=if(dark) Color.White else AccentBlue)) }
+                        listOf("Playlists","Favoritos").forEach { tab -> FilterChip(selected=libraryTab==tab,onClick={libraryTab=tab},label={Text(tab)},colors=FilterChipDefaults.filterChipColors(selectedContainerColor=AccentPurple.copy(alpha=.2f),selectedLabelColor=if(dark) Color.White else AccentPurple)) }
                     }
                     LazyColumn(Modifier.weight(1f).fillMaxWidth(),contentPadding=PaddingValues(bottom=16.dp)) {
                         if(libraryTab=="Playlists") {
@@ -545,7 +545,7 @@ private fun NegativeMusicApp() {
                             }
                         } else {
                             item { Text("Tus canciones favoritas",Modifier.padding(start=20.dp,top=12.dp,bottom=6.dp),color=secondary,fontSize=13.sp) }
-                            items(songs.filter{it.uri in favorites},key={it.uri}) { song -> Row(Modifier.fillMaxWidth().clickable{play(songs.filter{it.uri in favorites},song);showPlayer=true}.padding(horizontal=18.dp,vertical=8.dp),verticalAlignment=Alignment.CenterVertically){Box(Modifier.size(46.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceVariant),contentAlignment=Alignment.Center){Icon(Icons.Default.MusicNote,null,tint=AccentBlue)};Spacer(Modifier.width(12.dp));Column(Modifier.weight(1f)){Text(song.title,color=fg,maxLines=1);Text(song.artist,color=secondary,fontSize=12.sp,maxLines=1)};IconButton(onClick={menuSong=song}){Icon(Icons.Default.MoreVert,null,tint=secondary)}} }
+                            items(songs.filter{it.uri in favorites},key={it.uri}) { song -> Row(Modifier.fillMaxWidth().clickable{play(songs.filter{it.uri in favorites},song);showPlayer=true}.padding(horizontal=18.dp,vertical=8.dp),verticalAlignment=Alignment.CenterVertically){Box(Modifier.size(46.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceVariant),contentAlignment=Alignment.Center){Icon(Icons.Default.MusicNote,null,tint=AccentPurple)};Spacer(Modifier.width(12.dp));Column(Modifier.weight(1f)){Text(song.title,color=fg,maxLines=1);Text(song.artist,color=secondary,fontSize=12.sp,maxLines=1)};IconButton(onClick={menuSong=song}){Icon(Icons.Default.MoreVert,null,tint=secondary)}} }
                         }
                     }
                     Row(
@@ -555,7 +555,7 @@ private fun NegativeMusicApp() {
                             .padding(horizontal=8.dp, vertical=7.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        ShuffleModeGlyph(globalShuffleMode, if (globalShuffleMode > 0) AccentBlue else secondary, 30.dp)
+                        ShuffleModeGlyph(globalShuffleMode, if (globalShuffleMode > 0) AccentPurple else secondary, 30.dp)
                         Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f)) {
                             Text(
@@ -591,7 +591,7 @@ private fun NegativeMusicApp() {
                         Column {
                             Box(Modifier.fillMaxWidth().padding(horizontal=22.dp,vertical=5.dp),contentAlignment=Alignment.Center){
                                 if(selectedPlaylist?.cover?.isNotBlank()==true) PlaylistCoverImage(selectedPlaylist!!.cover,Modifier.fillMaxWidth(.68f).aspectRatio(1f).clip(RoundedCornerShape(18.dp)),"Portada de playlist",Color(0xFF201631),70.dp)
-                                else Box(Modifier.fillMaxWidth(.68f).aspectRatio(1f).clip(RoundedCornerShape(18.dp)).background(Brush.linearGradient(listOf(Color(0xFF30204D),Color(0xFF100D18)))),contentAlignment=Alignment.Center){Icon(Icons.Default.QueueMusic,null,tint=AccentCyan,modifier=Modifier.size(70.dp))}
+                                else Box(Modifier.fillMaxWidth(.68f).aspectRatio(1f).clip(RoundedCornerShape(18.dp)).background(Brush.linearGradient(listOf(Color(0xFF30204D),Color(0xFF100D18)))),contentAlignment=Alignment.Center){Icon(Icons.Default.QueueMusic,null,tint=AccentLavender,modifier=Modifier.size(70.dp))}
                             }
                             Text(selectedPlaylist?.name ?: "Playlist",Modifier.padding(start=22.dp,end=20.dp,top=6.dp,bottom=4.dp),color=fg,fontSize=27.sp,fontWeight=FontWeight.ExtraBold)
                             Text(selectedPlaylist?.description.orEmpty(),Modifier.padding(horizontal=22.dp),color=secondary,maxLines=2,overflow=TextOverflow.Ellipsis)
@@ -599,17 +599,17 @@ private fun NegativeMusicApp() {
                             Text("${visibleSongs.size} canciones · ${time(playlistDuration)}",Modifier.padding(start=22.dp,end=22.dp,top=4.dp),color=secondary,fontSize=12.sp)
                              Row(Modifier.fillMaxWidth().padding(horizontal=14.dp,vertical=10.dp),horizontalArrangement=Arrangement.spacedBy(8.dp),verticalAlignment=Alignment.CenterVertically){
                                  Box {
-                                     ThemedIconButton(dark,Icons.Default.MoreVert,"Opciones de playlist",if(playlistMenuOpen) AccentBlue else if(dark)AccentBlue else fg){playlistMenuOpen=true}
+                                     ThemedIconButton(dark,Icons.Default.MoreVert,"Opciones de playlist",if(playlistMenuOpen) AccentPurple else if(dark)AccentPurple else fg){playlistMenuOpen=true}
                                      DropdownMenu(expanded=playlistMenuOpen,onDismissRequest={playlistMenuOpen=false}){
-                                         DropdownMenuItem(text={Text(if(reorderPlaylist) "Terminar de ordenar" else "Ordenar canciones")},leadingIcon={Icon(Icons.Default.SwapVert,null,tint=AccentBlue)},onClick={playlistMenuOpen=false;reorderPlaylist=!reorderPlaylist})
-                                         DropdownMenuItem(text={Text("Editar playlist")},leadingIcon={Icon(Icons.Default.Edit,null,tint=AccentBlue)},onClick={playlistMenuOpen=false;editTarget=selectedPlaylist})
-                                         DropdownMenuItem(text={Text("Eliminar playlist")},leadingIcon={Icon(Icons.Default.Delete,null,tint=AccentBlue)},onClick={playlistMenuOpen=false;playlistDeleteTarget=selectedPlaylist})
+                                         DropdownMenuItem(text={Text(if(reorderPlaylist) "Terminar de ordenar" else "Ordenar canciones")},leadingIcon={Icon(Icons.Default.SwapVert,null,tint=AccentPurple)},onClick={playlistMenuOpen=false;reorderPlaylist=!reorderPlaylist})
+                                         DropdownMenuItem(text={Text("Editar playlist")},leadingIcon={Icon(Icons.Default.Edit,null,tint=AccentPurple)},onClick={playlistMenuOpen=false;editTarget=selectedPlaylist})
+                                         DropdownMenuItem(text={Text("Eliminar playlist")},leadingIcon={Icon(Icons.Default.Delete,null,tint=AccentPurple)},onClick={playlistMenuOpen=false;playlistDeleteTarget=selectedPlaylist})
                                      }
                                  }
-                                 IconButton(onClick={toggleIndividualShuffle(visibleSongs)}) { ShuffleModeGlyph(individualShuffleMode,if(individualShuffleMode>0 && !queueIsGlobal)AccentBlue else secondary,27.dp) }
-                                 ThemedIconButton(dark,Icons.Default.Add,"Añadir canción",if(dark)AccentBlue else fg){selectedSongUris=emptySet();addSongsSearch="";addSongsSource="";showAddSongsDialog=true}
+                                 IconButton(onClick={toggleIndividualShuffle(visibleSongs)}) { ShuffleModeGlyph(individualShuffleMode,if(individualShuffleMode>0 && !queueIsGlobal)AccentPurple else secondary,27.dp) }
+                                 ThemedIconButton(dark,Icons.Default.Add,"Añadir canción",if(dark)AccentPurple else fg){selectedSongUris=emptySet();addSongsSearch="";addSongsSource="";showAddSongsDialog=true}
                                  Spacer(Modifier.weight(1f))
-                                 FilledIconButton(onClick={if(visibleSongs.isNotEmpty()){play(visibleSongs);showPlayer=true}else toast="Esta playlist aún no tiene canciones."},modifier=Modifier.size(46.dp),colors=IconButtonDefaults.filledIconButtonColors(containerColor=AccentBlue,contentColor=Color.White)){Icon(Icons.Default.PlayArrow,"Reproducir")}
+                                 FilledIconButton(onClick={if(visibleSongs.isNotEmpty()){play(visibleSongs);showPlayer=true}else toast="Esta playlist aún no tiene canciones."},modifier=Modifier.size(46.dp),colors=IconButtonDefaults.filledIconButtonColors(containerColor=AccentPurple,contentColor=Color.White)){Icon(Icons.Default.PlayArrow,"Reproducir")}
                              }
                             }
                         }
@@ -657,10 +657,10 @@ private fun NegativeMusicApp() {
                                      .padding(horizontal=16.dp,vertical=7.dp),
                                  verticalAlignment=Alignment.CenterVertically
                              ){
-                                 if (reorderPlaylist) Icon(Icons.Default.DragHandle,"Mover canción",tint=AccentBlue,modifier=Modifier.size(28.dp))
-                                 Box(Modifier.size(50.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceVariant),contentAlignment=Alignment.Center){Icon(Icons.Default.Album,null,tint=AccentBlue,modifier=Modifier.size(28.dp))}
-                                 Spacer(Modifier.width(11.dp));Column(Modifier.weight(1f)){Text(s.title,color=if(s.uri==now?.uri)AccentBlue else fg,fontWeight=FontWeight.SemiBold,maxLines=1,overflow=TextOverflow.Ellipsis);Text("${s.artist} · ${time(s.duration)}",color=secondary,fontSize=12.sp,maxLines=1,overflow=TextOverflow.Ellipsis)}
-                                 if(s.uri in favorites)Icon(Icons.Default.Favorite,null,tint=AccentBlue,modifier=Modifier.size(16.dp))
+                                 if (reorderPlaylist) Icon(Icons.Default.DragHandle,"Mover canción",tint=AccentPurple,modifier=Modifier.size(28.dp))
+                                 Box(Modifier.size(50.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceVariant),contentAlignment=Alignment.Center){Icon(Icons.Default.Album,null,tint=AccentPurple,modifier=Modifier.size(28.dp))}
+                                 Spacer(Modifier.width(11.dp));Column(Modifier.weight(1f)){Text(s.title,color=if(s.uri==now?.uri)AccentPurple else fg,fontWeight=FontWeight.SemiBold,maxLines=1,overflow=TextOverflow.Ellipsis);Text("${s.artist} · ${time(s.duration)}",color=secondary,fontSize=12.sp,maxLines=1,overflow=TextOverflow.Ellipsis)}
+                                 if(s.uri in favorites)Icon(Icons.Default.Favorite,null,tint=AccentPurple,modifier=Modifier.size(16.dp))
                                  if (!reorderPlaylist) IconButton(onClick={menuSong=s}){Icon(Icons.Default.MoreVert,"Más opciones",tint=secondary)}
                              }
                          }
@@ -695,7 +695,7 @@ private fun NegativeMusicApp() {
             if (now != null) {
                 Row(Modifier.fillMaxWidth().padding(horizontal=8.dp,vertical=5.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surfaceVariant).padding(8.dp),verticalAlignment=Alignment.CenterVertically) {
                     Row(Modifier.weight(1f).clip(RoundedCornerShape(8.dp)).clickable { showPlayer = true },verticalAlignment=Alignment.CenterVertically) {
-                        if (songCover(now!!).isNotBlank()) PlaylistCoverImage(songCover(now!!),Modifier.size(38.dp).clip(RoundedCornerShape(8.dp)),"Carátula de ${songTitle(now!!)}",MaterialTheme.colorScheme.surfaceVariant,24.dp) else Icon(Icons.Default.Album,null,tint=AccentBlue,modifier=Modifier.size(38.dp))
+                        if (songCover(now!!).isNotBlank()) PlaylistCoverImage(songCover(now!!),Modifier.size(38.dp).clip(RoundedCornerShape(8.dp)),"Carátula de ${songTitle(now!!)}",MaterialTheme.colorScheme.surfaceVariant,24.dp) else Icon(Icons.Default.Album,null,tint=AccentPurple,modifier=Modifier.size(38.dp))
                         Spacer(Modifier.width(9.dp))
                         Box(Modifier.weight(1f).clip(RoundedCornerShape(4.dp))){
                             Column(Modifier.fillMaxWidth()){
@@ -711,15 +711,15 @@ private fun NegativeMusicApp() {
                             }
                         }
                     }
-                    IconButton(onClick={if(controller?.isPlaying==true)controller?.pause() else controller?.play()}){Icon(if(playing)Icons.Default.Pause else Icons.Default.PlayArrow,null,tint=AccentBlue)}
-                    IconButton(onClick={outputNames=try { val am=ctx.getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager; am.getDevices(android.media.AudioManager.GET_DEVICES_OUTPUTS).map{it.productName.toString()} } catch (_:Exception){emptyList()};outputDialog=true}){Icon(Icons.Default.Speaker,null,tint=AccentBlue)}
+                    IconButton(onClick={if(controller?.isPlaying==true)controller?.pause() else controller?.play()}){Icon(if(playing)Icons.Default.Pause else Icons.Default.PlayArrow,null,tint=AccentPurple)}
+                    IconButton(onClick={outputNames=try { val am=ctx.getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager; am.getDevices(android.media.AudioManager.GET_DEVICES_OUTPUTS).map{it.productName.toString()} } catch (_:Exception){emptyList()};outputDialog=true}){Icon(Icons.Default.Speaker,null,tint=AccentPurple)}
                 }
-                Slider(value=if(duration>0)(position.toFloat()/duration).coerceIn(0f,1f) else 0f,onValueChange={controller?.seekTo((it*duration).toLong())},modifier=Modifier.fillMaxWidth().height(14.dp),thumb={Box(Modifier.width(4.dp).height(16.dp).background(AccentBlue,RoundedCornerShape(2.dp)))},colors=SliderDefaults.colors(thumbColor=AccentBlue,activeTrackColor=AccentBlue))
+                Slider(value=if(duration>0)(position.toFloat()/duration).coerceIn(0f,1f) else 0f,onValueChange={controller?.seekTo((it*duration).toLong())},modifier=Modifier.fillMaxWidth().height(14.dp),thumb={Box(Modifier.width(4.dp).height(16.dp).background(AccentPurple,RoundedCornerShape(2.dp)))},colors=SliderDefaults.colors(thumbColor=AccentPurple,activeTrackColor=AccentPurple))
                 Row(Modifier.fillMaxWidth().padding(horizontal=16.dp),horizontalArrangement=Arrangement.SpaceBetween) { Text(time(position),color=secondary,fontSize=10.sp); Text(time(duration),color=secondary,fontSize=10.sp) }
             }
             NavigationBar(containerColor=surface,contentColor=fg) {
                 listOf(Triple("Inicio",Icons.Default.Home,"Inicio"),Triple("Buscar",Icons.Default.Search,"Buscar"),Triple("Biblioteca",Icons.Default.LibraryMusic,"Biblioteca"),Triple("Ajustes",Icons.Default.Settings,"Ajustes")).forEach { (label,icon,target) ->
-                    NavigationBarItem(selected=page==target || (target=="Biblioteca"&&(page=="Descargas"||page=="Favoritos"||page.startsWith("playlist:"))),onClick={page=target;search="";if(target=="Ajustes")settingsSection=null},icon={Icon(icon,null)},label={Text(label,fontSize=10.sp)},colors=NavigationBarItemDefaults.colors(selectedIconColor=AccentBlue,indicatorColor=AccentBlue.copy(alpha=.14f),selectedTextColor=AccentBlue,unselectedTextColor=secondary))
+                    NavigationBarItem(selected=page==target || (target=="Biblioteca"&&(page=="Descargas"||page=="Favoritos"||page.startsWith("playlist:"))),onClick={page=target;search="";if(target=="Ajustes")settingsSection=null},icon={Icon(icon,null)},label={Text(label,fontSize=10.sp)},colors=NavigationBarItemDefaults.colors(selectedIconColor=AccentPurple,indicatorColor=AccentPurple.copy(alpha=.14f),selectedTextColor=AccentPurple,unselectedTextColor=secondary))
                 }
             }
     }
@@ -727,14 +727,14 @@ private fun NegativeMusicApp() {
         androidx.compose.ui.window.Dialog(onDismissRequest={playlistDeleteTarget=null}) {
             Surface(Modifier.fillMaxWidth(.9f),shape=RoundedCornerShape(24.dp),color=surface,tonalElevation=10.dp) {
                 Column(Modifier.padding(22.dp),horizontalAlignment=Alignment.CenterHorizontally) {
-                    Box(Modifier.size(58.dp).clip(CircleShape).background(AccentBlue.copy(alpha=.14f)),contentAlignment=Alignment.Center){Icon(Icons.Default.DeleteForever,null,tint=AccentBlue,modifier=Modifier.size(30.dp))}
+                    Box(Modifier.size(58.dp).clip(CircleShape).background(AccentPurple.copy(alpha=.14f)),contentAlignment=Alignment.Center){Icon(Icons.Default.DeleteForever,null,tint=AccentPurple,modifier=Modifier.size(30.dp))}
                     Spacer(Modifier.height(12.dp));Text("Borrar playlist",color=fg,fontSize=22.sp,fontWeight=FontWeight.ExtraBold)
-                    Spacer(Modifier.height(6.dp));Text(target.name,color=AccentBlue,fontWeight=FontWeight.Bold,maxLines=1,overflow=TextOverflow.Ellipsis)
+                    Spacer(Modifier.height(6.dp));Text(target.name,color=AccentPurple,fontWeight=FontWeight.Bold,maxLines=1,overflow=TextOverflow.Ellipsis)
                     Spacer(Modifier.height(10.dp));Text("Se eliminará esta playlist y su lista de canciones. Las canciones originales no se borrarán.",color=secondary,fontSize=13.sp,textAlign=androidx.compose.ui.text.style.TextAlign.Center)
                     Spacer(Modifier.height(20.dp))
                     Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(10.dp)){
                         OutlinedButton(onClick={playlistDeleteTarget=null},modifier=Modifier.weight(1f),shape=RoundedCornerShape(14.dp)){Text("Cancelar")}
-                        Button(onClick={saveLists(playlists.filterNot{it.id==target.id});if(page=="playlist:"+target.id)page=playlistOrigin;playlistDeleteTarget=null;toast="Playlist eliminada."},modifier=Modifier.weight(1f),shape=RoundedCornerShape(14.dp),colors=ButtonDefaults.buttonColors(containerColor=AccentBlue,contentColor=Color.White)){Icon(Icons.Default.Delete,null);Spacer(Modifier.width(6.dp));Text("Borrar")}
+                        Button(onClick={saveLists(playlists.filterNot{it.id==target.id});if(page=="playlist:"+target.id)page=playlistOrigin;playlistDeleteTarget=null;toast="Playlist eliminada."},modifier=Modifier.weight(1f),shape=RoundedCornerShape(14.dp),colors=ButtonDefaults.buttonColors(containerColor=AccentPurple,contentColor=Color.White)){Icon(Icons.Default.Delete,null);Spacer(Modifier.width(6.dp));Text("Borrar")}
                     }
                 }
             }
@@ -753,7 +753,7 @@ private fun NegativeMusicApp() {
             Surface(modifier = Modifier.fillMaxWidth(0.94f).heightIn(max = 680.dp), shape = RoundedCornerShape(26.dp), color = Panel, tonalElevation = 8.dp) {
                 Column(Modifier.padding(20.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(Modifier.size(44.dp).clip(RoundedCornerShape(14.dp)).background(AccentBlue.copy(alpha=.18f)), contentAlignment = Alignment.Center) { Icon(Icons.Default.PlaylistAdd, null, tint=AccentCyan) }
+                        Box(Modifier.size(44.dp).clip(RoundedCornerShape(14.dp)).background(AccentPurple.copy(alpha=.18f)), contentAlignment = Alignment.Center) { Icon(Icons.Default.PlaylistAdd, null, tint=AccentLavender) }
                         Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f)) { Text("Añadir canciones", color=Color.White, fontSize=21.sp, fontWeight=FontWeight.Bold); Text(currentPlaylist?.name ?: "Playlist", color=Gray, fontSize=12.sp) }
                         IconButton(onClick={showAddSongsDialog=false}) { Icon(Icons.Default.Close, null, tint=Gray) }
@@ -767,20 +767,20 @@ private fun NegativeMusicApp() {
                         LazyColumn(Modifier.weight(1f).fillMaxWidth(),verticalArrangement=Arrangement.spacedBy(6.dp)) {
                             item {
                                 Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Color.White.copy(alpha=.04f)).clickable{addSongsSource="Descargas"}.padding(12.dp),verticalAlignment=Alignment.CenterVertically){
-                                    Box(Modifier.size(44.dp).clip(RoundedCornerShape(12.dp)).background(if(dark)AccentBlue.copy(alpha=.15f) else Color.Transparent),contentAlignment=Alignment.Center){Icon(Icons.Default.Download,null,tint=AccentBlue)}
+                                    Box(Modifier.size(44.dp).clip(RoundedCornerShape(12.dp)).background(if(dark)AccentPurple.copy(alpha=.15f) else Color.Transparent),contentAlignment=Alignment.Center){Icon(Icons.Default.Download,null,tint=AccentPurple)}
                                     Spacer(Modifier.width(12.dp));Column(Modifier.weight(1f)){Text("Descargas",color=Color.White,fontWeight=FontWeight.SemiBold);Text("${downloadedSongs.size} canciones",color=Gray,fontSize=12.sp)};Icon(Icons.Default.ChevronRight,null,tint=Gray)
                                 }
                             }
                             items(playlists,key={it.id}) { pl ->
                                 Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Color.White.copy(alpha=.04f)).clickable{addSongsSource="Playlist:"+pl.id}.padding(12.dp),verticalAlignment=Alignment.CenterVertically){
-                                    Box(Modifier.size(44.dp).clip(RoundedCornerShape(12.dp)).background(if(dark)AccentBlue.copy(alpha=.15f) else Color.Transparent),contentAlignment=Alignment.Center){Icon(Icons.Default.QueueMusic,null,tint=AccentBlue)}
+                                    Box(Modifier.size(44.dp).clip(RoundedCornerShape(12.dp)).background(if(dark)AccentPurple.copy(alpha=.15f) else Color.Transparent),contentAlignment=Alignment.Center){Icon(Icons.Default.QueueMusic,null,tint=AccentPurple)}
                                     Spacer(Modifier.width(12.dp));Column(Modifier.weight(1f)){Text(pl.name,color=Color.White,fontWeight=FontWeight.SemiBold,maxLines=1,overflow=TextOverflow.Ellipsis);Text("${pl.songs.size} canciones",color=Gray,fontSize=12.sp)};Icon(Icons.Default.ChevronRight,null,tint=Gray)
                                 }
                             }
                         }
                     } else {
                         Row(verticalAlignment=Alignment.CenterVertically) {
-                            IconButton(onClick={addSongsSource=""}){Icon(Icons.Default.ArrowBack,null,tint=AccentBlue)}
+                            IconButton(onClick={addSongsSource=""}){Icon(Icons.Default.ArrowBack,null,tint=AccentPurple)}
                             Text(if(addSongsSource=="Descargas") "Descargas" else playlists.firstOrNull{it.id==addSongsSource.removePrefix("Playlist:")}?.name ?: "Playlist",color=Color.White,fontWeight=FontWeight.SemiBold,modifier=Modifier.weight(1f))
                             Text("${selectedSongUris.size} seleccionadas",color=Gray,fontSize=11.sp)
                         }
@@ -791,9 +791,9 @@ private fun NegativeMusicApp() {
                                 items(candidates,key={it.uri}) { song ->
                                     val alreadyAdded=currentPlaylist?.songs?.contains(song.uri)==true
                                     Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).clickable(enabled=!alreadyAdded){selectedSongUris=if(song.uri in selectedSongUris)selectedSongUris-song.uri else selectedSongUris+song.uri}.padding(horizontal=7.dp,vertical=8.dp),verticalAlignment=Alignment.CenterVertically){
-                                        Box(Modifier.size(42.dp).clip(RoundedCornerShape(10.dp)).background(if(dark)Color(0xFF102D4A) else Color(0xFFF0EAFF)),contentAlignment=Alignment.Center){Icon(Icons.Default.MusicNote,null,tint=AccentBlue)}
+                                        Box(Modifier.size(42.dp).clip(RoundedCornerShape(10.dp)).background(if(dark)Color(0xFF102D4A) else Color(0xFFF0EAFF)),contentAlignment=Alignment.Center){Icon(Icons.Default.MusicNote,null,tint=AccentPurple)}
                                         Spacer(Modifier.width(10.dp));Column(Modifier.weight(1f)){Text(song.title,color=if(alreadyAdded)Gray else Color.White,fontWeight=FontWeight.SemiBold,maxLines=1,overflow=TextOverflow.Ellipsis);Text(song.artist,color=Gray,fontSize=12.sp,maxLines=1,overflow=TextOverflow.Ellipsis)}
-                                        if(alreadyAdded)Icon(Icons.Default.CheckCircle,"Ya añadida",tint=AccentCyan,modifier=Modifier.size(22.dp)) else Checkbox(checked=song.uri in selectedSongUris,onCheckedChange={checked->selectedSongUris=if(checked)selectedSongUris+song.uri else selectedSongUris-song.uri},colors=CheckboxDefaults.colors(checkedColor=AccentBlue))
+                                        if(alreadyAdded)Icon(Icons.Default.CheckCircle,"Ya añadida",tint=AccentLavender,modifier=Modifier.size(22.dp)) else Checkbox(checked=song.uri in selectedSongUris,onCheckedChange={checked->selectedSongUris=if(checked)selectedSongUris+song.uri else selectedSongUris-song.uri},colors=CheckboxDefaults.colors(checkedColor=AccentPurple))
                                     }
                                 }
                             }
@@ -809,7 +809,7 @@ private fun NegativeMusicApp() {
                                 toast=""
                             }
                             showAddSongsDialog=false
-                        },enabled=selectedSongUris.isNotEmpty(),modifier=Modifier.weight(1f),colors=ButtonDefaults.buttonColors(containerColor=AccentBlue,contentColor=Color.White)) { Text("Añadir (${selectedSongUris.size})") }
+                        },enabled=selectedSongUris.isNotEmpty(),modifier=Modifier.weight(1f),colors=ButtonDefaults.buttonColors(containerColor=AccentPurple,contentColor=Color.White)) { Text("Añadir (${selectedSongUris.size})") }
                     }
                 }
             }
@@ -832,10 +832,10 @@ private fun NegativeMusicApp() {
     editTarget?.let { p -> PlaylistDialog("Editar playlist",p.name,p.description,p.cover,{editTarget=null}) { n,d,c -> saveLists(playlists.map{if(it.id==p.id)it.copy(name=n,description=d,cover=c)else it});editTarget=null } }
     menuSong?.let { s -> androidx.compose.material3.ModalBottomSheet(onDismissRequest={menuSong=null},containerColor=surface,contentColor=fg) {
         Row(Modifier.fillMaxWidth().padding(horizontal=20.dp,vertical=8.dp),verticalAlignment=Alignment.CenterVertically) {
-            Box(Modifier.size(44.dp).clip(RoundedCornerShape(9.dp)).background(Color(0xFF102D4A)),contentAlignment=Alignment.Center){Icon(Icons.Default.Album,null,tint=AccentBlue)}
+            Box(Modifier.size(44.dp).clip(RoundedCornerShape(9.dp)).background(Color(0xFF102D4A)),contentAlignment=Alignment.Center){Icon(Icons.Default.Album,null,tint=AccentPurple)}
             Spacer(Modifier.width(12.dp));Column(Modifier.weight(1f)){Text(s.title,color=fg,fontSize=13.sp,fontWeight=FontWeight.SemiBold,maxLines=1,overflow=TextOverflow.Ellipsis);Text(s.artist,color=secondary,fontSize=11.sp,maxLines=1,overflow=TextOverflow.Ellipsis)}
         }
-        HorizontalDivider(color=AccentCyan.copy(alpha=.18f))
+        HorizontalDivider(color=AccentLavender.copy(alpha=.18f))
         BottomAction("Editar datos",Icons.Default.Edit,fg){metadataSong=s;metadataTitle=songTitle(s);metadataArtist=songArtist(s);metadataCover=songCover(s);menuSong=null}
         YouTubeSearchAction("Buscar canción en YouTube",fg) {
             val title = songTitle(s).ifBlank { File(s.path).nameWithoutExtension }
@@ -871,8 +871,8 @@ private fun NegativeMusicApp() {
                         }
                         IconButton(onClick={metadataSong=null}){Icon(Icons.Default.Close,"Cerrar",tint=secondary)}
                     }
-                    OutlinedTextField(value=metadataTitle,onValueChange={metadataTitle=it},modifier=Modifier.fillMaxWidth(),singleLine=true,label={Text("Título")},colors=OutlinedTextFieldDefaults.colors(focusedTextColor=Color.White,unfocusedTextColor=Color.White,cursorColor=AccentBlue,focusedLabelColor=AccentBlue,unfocusedLabelColor=Gray))
-                    OutlinedTextField(value=metadataArtist,onValueChange={metadataArtist=it},modifier=Modifier.fillMaxWidth(),singleLine=true,label={Text("Artista")},colors=OutlinedTextFieldDefaults.colors(focusedTextColor=Color.White,unfocusedTextColor=Color.White,cursorColor=AccentBlue,focusedLabelColor=AccentBlue,unfocusedLabelColor=Gray))
+                    OutlinedTextField(value=metadataTitle,onValueChange={metadataTitle=it},modifier=Modifier.fillMaxWidth(),singleLine=true,label={Text("Título")},colors=OutlinedTextFieldDefaults.colors(focusedTextColor=Color.White,unfocusedTextColor=Color.White,cursorColor=AccentPurple,focusedLabelColor=AccentPurple,unfocusedLabelColor=Gray))
+                    OutlinedTextField(value=metadataArtist,onValueChange={metadataArtist=it},modifier=Modifier.fillMaxWidth(),singleLine=true,label={Text("Artista")},colors=OutlinedTextFieldDefaults.colors(focusedTextColor=Color.White,unfocusedTextColor=Color.White,cursorColor=AccentPurple,focusedLabelColor=AccentPurple,unfocusedLabelColor=Gray))
                     val coverPicker=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()){uri->if(uri!=null){val saved=copyPlaylistCover(ctx,uri);if(saved!=null)metadataCover=saved else toast="No se pudo guardar la imagen seleccionada."}}
                     if(metadataCover.isNotBlank()) {
                         PlaylistCoverImage(metadataCover,Modifier.fillMaxWidth().height(150.dp).clip(RoundedCornerShape(14.dp)),"Portada seleccionada",Color(0xFF201631),36.dp)
@@ -895,7 +895,7 @@ private fun NegativeMusicApp() {
                             },
                             enabled=metadataTitle.isNotBlank() && metadataArtist.isNotBlank(),
                             modifier=Modifier.weight(1f),
-                            colors=ButtonDefaults.buttonColors(containerColor=AccentBlue,contentColor=Color.White)
+                            colors=ButtonDefaults.buttonColors(containerColor=AccentPurple,contentColor=Color.White)
                         ){Icon(Icons.Default.Save,null);Spacer(Modifier.width(6.dp));Text("Guardar")}
                     }
                 }
@@ -937,12 +937,12 @@ private fun NegativeMusicApp() {
                     }
                     Spacer(Modifier.height(12.dp))
                     Box(Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(22.dp)).background(Brush.linearGradient(listOf(Color(0xFF123C67),Color(0xFF071018))))) {
-                        if (songCover(now!!).isNotBlank()) PlaylistCoverImage(songCover(now!!),Modifier.fillMaxSize(),"Carátula de ${songTitle(now!!)}",Color(0xFF071018),100.dp) else Icon(Icons.Default.Album,null,tint=AccentCyan,modifier=Modifier.size(100.dp).align(Alignment.Center))
+                        if (songCover(now!!).isNotBlank()) PlaylistCoverImage(songCover(now!!),Modifier.fillMaxSize(),"Carátula de ${songTitle(now!!)}",Color(0xFF071018),100.dp) else Icon(Icons.Default.Album,null,tint=AccentLavender,modifier=Modifier.size(100.dp).align(Alignment.Center))
                         Row(Modifier.fillMaxSize()){
                             Box(Modifier.weight(1f).fillMaxHeight().pointerInput(Unit){detectTapGestures(onDoubleTap={seekBy(-5,-1)})})
                             Box(Modifier.weight(1f).fillMaxHeight().pointerInput(Unit){detectTapGestures(onDoubleTap={seekBy(5,1)})})
                         }
-                        if(seekFeedback!=0) { val ripple=remember(seekRippleKey){Animatable(0f)}; LaunchedEffect(seekRippleKey){ripple.snapTo(0f);ripple.animateTo(1f,tween(520))}; val sideModifier=if(seekFeedbackSide<0)Modifier.align(Alignment.CenterStart)else Modifier.align(Alignment.CenterEnd); Box(sideModifier.padding(horizontal=42.dp).size(82.dp),contentAlignment=Alignment.Center){ Box(Modifier.matchParentSize().graphicsLayer{scaleX=1f+ripple.value*.8f;scaleY=1f+ripple.value*.8f;alpha=1f-ripple.value}.border(2.dp,AccentCyan.copy(alpha=.45f),CircleShape)); Box(Modifier.size(42.dp).graphicsLayer{scaleX=1f+ripple.value*.25f;scaleY=1f+ripple.value*.25f;alpha=1f-ripple.value*.55f}.background(AccentBlue.copy(alpha=.2f),CircleShape)); Text(if(seekFeedback>0)"+$seekFeedback" else "$seekFeedback",color=Color.White,fontSize=27.sp,fontWeight=FontWeight.ExtraBold) } }
+                        if(seekFeedback!=0) { val ripple=remember(seekRippleKey){Animatable(0f)}; LaunchedEffect(seekRippleKey){ripple.snapTo(0f);ripple.animateTo(1f,tween(520))}; val sideModifier=if(seekFeedbackSide<0)Modifier.align(Alignment.CenterStart)else Modifier.align(Alignment.CenterEnd); Box(sideModifier.padding(horizontal=42.dp).size(82.dp),contentAlignment=Alignment.Center){ Box(Modifier.matchParentSize().graphicsLayer{scaleX=1f+ripple.value*.8f;scaleY=1f+ripple.value*.8f;alpha=1f-ripple.value}.border(2.dp,AccentLavender.copy(alpha=.45f),CircleShape)); Box(Modifier.size(42.dp).graphicsLayer{scaleX=1f+ripple.value*.25f;scaleY=1f+ripple.value*.25f;alpha=1f-ripple.value*.55f}.background(AccentPurple.copy(alpha=.2f),CircleShape)); Text(if(seekFeedback>0)"+$seekFeedback" else "$seekFeedback",color=Color.White,fontSize=27.sp,fontWeight=FontWeight.ExtraBold) } }
                     }
                     Spacer(Modifier.height(18.dp))
                     Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
@@ -950,27 +950,27 @@ private fun NegativeMusicApp() {
                         IconButton(onClick={favorite(now!!)} ){Icon(Icons.Default.Favorite,null,tint=if(now!!.uri in favorites)AccentPink else secondary)}
                     }
                     Spacer(Modifier.height(18.dp))
-                    Slider(value=if(duration>0)(position.toFloat()/duration).coerceIn(0f,1f) else 0f,onValueChange={controller?.seekTo((it*duration).toLong())},modifier=Modifier.height(14.dp),thumb={Box(Modifier.width(4.dp).height(18.dp).background(AccentBlue,RoundedCornerShape(2.dp)))},colors=SliderDefaults.colors(thumbColor=AccentBlue,activeTrackColor=AccentBlue))
+                    Slider(value=if(duration>0)(position.toFloat()/duration).coerceIn(0f,1f) else 0f,onValueChange={controller?.seekTo((it*duration).toLong())},modifier=Modifier.height(14.dp),thumb={Box(Modifier.width(4.dp).height(18.dp).background(AccentPurple,RoundedCornerShape(2.dp)))},colors=SliderDefaults.colors(thumbColor=AccentPurple,activeTrackColor=AccentPurple))
                     Row(Modifier.fillMaxWidth().padding(top=3.dp),horizontalArrangement=Arrangement.SpaceBetween){Text(time(position),color=secondary,fontSize=11.sp);Text(time(duration),color=secondary,fontSize=11.sp)}
                     Spacer(Modifier.height(12.dp))
                     Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceEvenly,verticalAlignment=Alignment.CenterVertically){
-                        IconButton(onClick={toggleIndividualShuffle(visibleSongs)}) { ShuffleModeGlyph(individualShuffleMode,if(individualShuffleMode>0 && !queueIsGlobal)AccentBlue else secondary,27.dp) }
-                        IconButton(onClick={controller?.let{p->if(p.currentPosition>2000L)p.seekTo(0L)else p.seekToPreviousMediaItem()}}){Icon(Icons.Default.SkipPrevious,null,tint=AccentBlue,modifier=Modifier.size(34.dp))}
-                        FilledIconButton(onClick={if(playing)controller?.pause()else controller?.play()},modifier=Modifier.size(70.dp),colors=IconButtonDefaults.filledIconButtonColors(containerColor=AccentBlue,contentColor=Color.White)){Icon(if(playing)Icons.Default.Pause else Icons.Default.PlayArrow,null,modifier=Modifier.size(36.dp))}
-                        IconButton(onClick={controller?.seekToNextMediaItem()}){Icon(Icons.Default.SkipNext,null,tint=AccentBlue,modifier=Modifier.size(34.dp))}
-                        IconButton(onClick={controller?.let{p->p.repeatMode=when(repeat){Player.REPEAT_MODE_OFF->Player.REPEAT_MODE_ALL;Player.REPEAT_MODE_ALL->Player.REPEAT_MODE_ONE;else->Player.REPEAT_MODE_OFF}}}){Box(contentAlignment=Alignment.Center){Icon(Icons.Default.Repeat,null,tint=AccentBlue,modifier=Modifier.size(27.dp));if(repeat==Player.REPEAT_MODE_ONE)Text("1",color=AccentBlue,fontSize=9.sp,fontWeight=FontWeight.Bold,modifier=Modifier.align(Alignment.Center))}}
+                        IconButton(onClick={toggleIndividualShuffle(visibleSongs)}) { ShuffleModeGlyph(individualShuffleMode,if(individualShuffleMode>0 && !queueIsGlobal)AccentPurple else secondary,27.dp) }
+                        IconButton(onClick={controller?.let{p->if(p.currentPosition>2000L)p.seekTo(0L)else p.seekToPreviousMediaItem()}}){Icon(Icons.Default.SkipPrevious,null,tint=AccentPurple,modifier=Modifier.size(34.dp))}
+                        FilledIconButton(onClick={if(playing)controller?.pause()else controller?.play()},modifier=Modifier.size(70.dp),colors=IconButtonDefaults.filledIconButtonColors(containerColor=AccentPurple,contentColor=Color.White)){Icon(if(playing)Icons.Default.Pause else Icons.Default.PlayArrow,null,modifier=Modifier.size(36.dp))}
+                        IconButton(onClick={controller?.seekToNextMediaItem()}){Icon(Icons.Default.SkipNext,null,tint=AccentPurple,modifier=Modifier.size(34.dp))}
+                        IconButton(onClick={controller?.let{p->p.repeatMode=when(repeat){Player.REPEAT_MODE_OFF->Player.REPEAT_MODE_ALL;Player.REPEAT_MODE_ALL->Player.REPEAT_MODE_ONE;else->Player.REPEAT_MODE_OFF}}}){Box(contentAlignment=Alignment.Center){Icon(Icons.Default.Repeat,null,tint=AccentPurple,modifier=Modifier.size(27.dp));if(repeat==Player.REPEAT_MODE_ONE)Text("1",color=AccentPurple,fontSize=9.sp,fontWeight=FontWeight.Bold,modifier=Modifier.align(Alignment.Center))}}
                     }
                     Spacer(Modifier.height(4.dp))
                     Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceEvenly,verticalAlignment=Alignment.CenterVertically){
-                        Box(Modifier.weight(1f),contentAlignment=Alignment.Center){IconButton(onClick={showQueue=true}){Icon(Icons.Default.QueueMusic,null,tint=AccentBlue,modifier=Modifier.size(25.dp))}}
+                        Box(Modifier.weight(1f),contentAlignment=Alignment.Center){IconButton(onClick={showQueue=true}){Icon(Icons.Default.QueueMusic,null,tint=AccentPurple,modifier=Modifier.size(25.dp))}}
                         Spacer(Modifier.weight(1f)); Spacer(Modifier.weight(1f)); Spacer(Modifier.weight(1f))
-                        Box(Modifier.weight(1f),contentAlignment=Alignment.Center){IconButton(onClick={outputNames=try{val am=ctx.getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager;am.getDevices(android.media.AudioManager.GET_DEVICES_OUTPUTS).map{it.productName.toString()}}catch(_:Exception){emptyList()};outputDialog=true}){Icon(Icons.Default.Speaker,null,tint=AccentBlue,modifier=Modifier.size(25.dp))}}
+                        Box(Modifier.weight(1f),contentAlignment=Alignment.Center){IconButton(onClick={outputNames=try{val am=ctx.getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager;am.getDevices(android.media.AudioManager.GET_DEVICES_OUTPUTS).map{it.productName.toString()}}catch(_:Exception){emptyList()};outputDialog=true}){Icon(Icons.Default.Speaker,null,tint=AccentPurple,modifier=Modifier.size(25.dp))}}
                     }
                     Spacer(Modifier.height(20.dp))
                     Text("Letra",color=fg,fontSize=22.sp,fontWeight=FontWeight.Bold,modifier=Modifier.fillMaxWidth())
                     val lyricsFocusRequester = remember { FocusRequester() }
-                    Row(Modifier.fillMaxWidth().padding(top=3.dp,bottom=8.dp),verticalAlignment=Alignment.CenterVertically){ Text(if(lyricsEditing) "Editando letra" else "Letra bloqueada",color=secondary,fontSize=12.sp,modifier=Modifier.weight(1f)); TextButton(onClick={ if(lyricsEditing){lyricsEditing=false} else {lyricsEditing=true;scope.launch{delay(100);lyricsFocusRequester.requestFocus()} } }){Text(if(lyricsEditing) "Listo" else "Editar",color=AccentBlue)} }
-                    Box(Modifier.fillMaxWidth().padding(vertical=2.dp)){ OutlinedTextField(value=lyricsText,onValueChange={if(lyricsEditing){lyricsText=it;prefs.edit().putString("lyrics_${now!!.uri}",it).apply()}},readOnly=!lyricsEditing,modifier=Modifier.fillMaxWidth().focusRequester(lyricsFocusRequester).heightIn(min=240.dp),placeholder={Text("Escribe o pega aquí la letra de esta canción")},minLines=10,maxLines=18,colors=OutlinedTextFieldDefaults.colors(focusedTextColor=fg,unfocusedTextColor=fg,disabledTextColor=fg,focusedContainerColor=bg,unfocusedContainerColor=bg,focusedBorderColor=AccentBlue,unfocusedBorderColor=secondary,cursorColor=AccentBlue)) }
+                    Row(Modifier.fillMaxWidth().padding(top=3.dp,bottom=8.dp),verticalAlignment=Alignment.CenterVertically){ Text(if(lyricsEditing) "Editando letra" else "Letra bloqueada",color=secondary,fontSize=12.sp,modifier=Modifier.weight(1f)); TextButton(onClick={ if(lyricsEditing){lyricsEditing=false} else {lyricsEditing=true;scope.launch{delay(100);lyricsFocusRequester.requestFocus()} } }){Text(if(lyricsEditing) "Listo" else "Editar",color=AccentPurple)} }
+                    Box(Modifier.fillMaxWidth().padding(vertical=2.dp)){ OutlinedTextField(value=lyricsText,onValueChange={if(lyricsEditing){lyricsText=it;prefs.edit().putString("lyrics_${now!!.uri}",it).apply()}},readOnly=!lyricsEditing,modifier=Modifier.fillMaxWidth().focusRequester(lyricsFocusRequester).heightIn(min=240.dp),placeholder={Text("Escribe o pega aquí la letra de esta canción")},minLines=10,maxLines=18,colors=OutlinedTextFieldDefaults.colors(focusedTextColor=fg,unfocusedTextColor=fg,disabledTextColor=fg,focusedContainerColor=bg,unfocusedContainerColor=bg,focusedBorderColor=AccentPurple,unfocusedBorderColor=secondary,cursorColor=AccentPurple)) }
                     Spacer(Modifier.height(32.dp))
                 }
             }
@@ -978,7 +978,7 @@ private fun NegativeMusicApp() {
                 Row(Modifier.fillMaxWidth().padding(horizontal=20.dp,vertical=8.dp),verticalAlignment=Alignment.CenterVertically){Text("Fila de reproducción",fontSize=23.sp,fontWeight=FontWeight.ExtraBold,color=fg,modifier=Modifier.weight(1f));TextButton(onClick={controller?.clearMediaItems();showQueue=false}){Text("Vaciar")}}
                 val qp=controller
                 if(qp==null||qp.mediaItemCount==0) Box(Modifier.fillMaxWidth().height(180.dp),contentAlignment=Alignment.Center){Text("La fila está vacía.",color=secondary)}
-                else LazyColumn(Modifier.fillMaxWidth().heightIn(max=520.dp).padding(bottom=20.dp)){items((0 until qp.mediaItemCount).toList(),key={it}){i->val mi=qp.getMediaItemAt(i);val song=songs.firstOrNull{it.uri==mi.localConfiguration?.uri?.toString()};Row(Modifier.fillMaxWidth().clickable{qp.seekTo(i,0);qp.play();showQueue=false}.padding(horizontal=18.dp,vertical=8.dp),verticalAlignment=Alignment.CenterVertically){Box(Modifier.size(44.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceVariant),contentAlignment=Alignment.Center){Icon(Icons.Default.Album,null,tint=AccentBlue)};Spacer(Modifier.width(10.dp));Column(Modifier.weight(1f)){Text(song?.title?:mi.mediaMetadata.title?.toString().orEmpty(),color=if(i==qp.currentMediaItemIndex)AccentBlue else fg,maxLines=1);Text(song?.artist?:mi.mediaMetadata.artist?.toString().orEmpty(),color=secondary,fontSize=12.sp,maxLines=1)};IconButton(onClick={qp.removeMediaItem(i)}){Icon(Icons.Default.Close,"Quitar",tint=secondary)}}}}
+                else LazyColumn(Modifier.fillMaxWidth().heightIn(max=520.dp).padding(bottom=20.dp)){items((0 until qp.mediaItemCount).toList(),key={it}){i->val mi=qp.getMediaItemAt(i);val song=songs.firstOrNull{it.uri==mi.localConfiguration?.uri?.toString()};Row(Modifier.fillMaxWidth().clickable{qp.seekTo(i,0);qp.play();showQueue=false}.padding(horizontal=18.dp,vertical=8.dp),verticalAlignment=Alignment.CenterVertically){Box(Modifier.size(44.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceVariant),contentAlignment=Alignment.Center){Icon(Icons.Default.Album,null,tint=AccentPurple)};Spacer(Modifier.width(10.dp));Column(Modifier.weight(1f)){Text(song?.title?:mi.mediaMetadata.title?.toString().orEmpty(),color=if(i==qp.currentMediaItemIndex)AccentPurple else fg,maxLines=1);Text(song?.artist?:mi.mediaMetadata.artist?.toString().orEmpty(),color=secondary,fontSize=12.sp,maxLines=1)};IconButton(onClick={qp.removeMediaItem(i)}){Icon(Icons.Default.Close,"Quitar",tint=secondary)}}}}
             }
         }
     }
@@ -1090,7 +1090,7 @@ private fun copyPlaylistCover(context: Context, uri: Uri): String? {
             Icon(
                 Icons.Default.QueueMusic,
                 contentDescription = null,
-                tint = AccentBlue,
+                tint = AccentPurple,
                 modifier = Modifier.size(fallbackIconSize)
             )
         }
@@ -1111,7 +1111,7 @@ private fun copyPlaylistCover(context: Context, uri: Uri): String? {
     }
 }
 
-@Composable private fun BottomAction(label:String,icon:androidx.compose.ui.graphics.vector.ImageVector,fg:Color,onClick:()->Unit){Row(Modifier.fillMaxWidth().clickable(onClick=onClick).padding(horizontal=22.dp,vertical=13.dp),verticalAlignment=Alignment.CenterVertically){Icon(icon,null,tint=if(fg==Color.White) AccentBlue else fg);Spacer(Modifier.width(18.dp));Text(label,color=fg,fontSize=15.sp)}}
+@Composable private fun BottomAction(label:String,icon:androidx.compose.ui.graphics.vector.ImageVector,fg:Color,onClick:()->Unit){Row(Modifier.fillMaxWidth().clickable(onClick=onClick).padding(horizontal=22.dp,vertical=13.dp),verticalAlignment=Alignment.CenterVertically){Icon(icon,null,tint=if(fg==Color.White) AccentPurple else fg);Spacer(Modifier.width(18.dp));Text(label,color=fg,fontSize=15.sp)}}
 
 @Composable private fun YouTubeSearchAction(label: String, fg: Color, onClick: () -> Unit) {
     Row(
@@ -1139,8 +1139,8 @@ private fun SwipeQueueContainer(song: Song, onQueue: () -> Unit, content: @Compo
     val offset = remember(song.uri) { Animatable(0f) }
     val swipeScope = rememberCoroutineScope()
     Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))) {
-        Box(Modifier.matchParentSize().background(AccentBlue.copy(alpha=(offset.value/110f).coerceIn(0f,.22f))),contentAlignment=Alignment.CenterStart) {
-            Icon(Icons.Default.QueueMusic,null,tint=if(MaterialTheme.colorScheme.background==Dark) AccentBlue.copy(alpha=(offset.value/80f).coerceIn(0f,1f)) else MaterialTheme.colorScheme.onSurface.copy(alpha=(offset.value/80f).coerceIn(0f,1f)),modifier=Modifier.padding(start=18.dp).size(24.dp))
+        Box(Modifier.matchParentSize().background(AccentPurple.copy(alpha=(offset.value/110f).coerceIn(0f,.22f))),contentAlignment=Alignment.CenterStart) {
+            Icon(Icons.Default.QueueMusic,null,tint=if(MaterialTheme.colorScheme.background==Dark) AccentPurple.copy(alpha=(offset.value/80f).coerceIn(0f,1f)) else MaterialTheme.colorScheme.onSurface.copy(alpha=(offset.value/80f).coerceIn(0f,1f)),modifier=Modifier.padding(start=18.dp).size(24.dp))
         }
         Box(Modifier.fillMaxWidth().offset { IntOffset(offset.value.roundToInt(),0) }.pointerInput(song.uri) {
             detectHorizontalDragGestures(
@@ -1159,9 +1159,9 @@ private fun SwipeQueueContainer(song: Song, onQueue: () -> Unit, content: @Compo
         items(songs,key={it.uri}){s->
             SwipeQueueContainer(s,{enqueue(s)}) {
                 Row(Modifier.fillMaxWidth().combinedClickable(onClick={play(s)},onLongClick={menu(s)}).padding(horizontal=16.dp,vertical=7.dp),verticalAlignment=Alignment.CenterVertically){
-                    if (cover(s).isNotBlank()) PlaylistCoverImage(cover(s),Modifier.size(50.dp).clip(RoundedCornerShape(8.dp)),"Carátula de ${s.title}",MaterialTheme.colorScheme.surfaceVariant,28.dp) else Box(Modifier.size(50.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceVariant),contentAlignment=Alignment.Center){Icon(Icons.Default.Album,null,tint=AccentBlue,modifier=Modifier.size(28.dp))}
-                    Spacer(Modifier.width(11.dp));Column(Modifier.weight(1f)){Text(s.title,color=if(s.uri==current)AccentBlue else fg,fontWeight=FontWeight.SemiBold,maxLines=1,overflow=TextOverflow.Ellipsis);Text("${s.artist} · ${time(s.duration)}",color=secondary,fontSize=12.sp,maxLines=1,overflow=TextOverflow.Ellipsis)}
-                    if(s.uri in favorites)Icon(Icons.Default.Favorite,null,tint=AccentBlue,modifier=Modifier.size(16.dp))
+                    if (cover(s).isNotBlank()) PlaylistCoverImage(cover(s),Modifier.size(50.dp).clip(RoundedCornerShape(8.dp)),"Carátula de ${s.title}",MaterialTheme.colorScheme.surfaceVariant,28.dp) else Box(Modifier.size(50.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceVariant),contentAlignment=Alignment.Center){Icon(Icons.Default.Album,null,tint=AccentPurple,modifier=Modifier.size(28.dp))}
+                    Spacer(Modifier.width(11.dp));Column(Modifier.weight(1f)){Text(s.title,color=if(s.uri==current)AccentPurple else fg,fontWeight=FontWeight.SemiBold,maxLines=1,overflow=TextOverflow.Ellipsis);Text("${s.artist} · ${time(s.duration)}",color=secondary,fontSize=12.sp,maxLines=1,overflow=TextOverflow.Ellipsis)}
+                    if(s.uri in favorites)Icon(Icons.Default.Favorite,null,tint=AccentPurple,modifier=Modifier.size(16.dp))
                     IconButton(onClick={menu(s)}){Icon(Icons.Default.MoreVert,"Más opciones",tint=secondary)}
                 }
             }
@@ -1188,7 +1188,7 @@ private fun SwipeQueueContainer(song: Song, onQueue: () -> Unit, content: @Compo
                     .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.QueueMusic, contentDescription = null, tint = AccentBlue, modifier = Modifier.size(42.dp))
+                Icon(Icons.Default.QueueMusic, contentDescription = null, tint = AccentPurple, modifier = Modifier.size(42.dp))
             }
         }
         Spacer(Modifier.height(8.dp))
@@ -1199,8 +1199,8 @@ private fun SwipeQueueContainer(song: Song, onQueue: () -> Unit, content: @Compo
 
 @Composable private fun HomeRow(title:String,sub:String,icon:androidx.compose.ui.graphics.vector.ImageVector,fg:Color,secondary:Color,cover:String="",onClick:()->Unit){
     Row(Modifier.fillMaxWidth().clickable(onClick=onClick).padding(horizontal=20.dp,vertical=9.dp),verticalAlignment=Alignment.CenterVertically){
-        if(cover.isNotBlank()) PlaylistCoverImage(cover,Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)),"Portada de $title",AccentBlue.copy(alpha=.12f),26.dp)
-        else Box(Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)).background(AccentBlue.copy(alpha=.14f)),contentAlignment=Alignment.Center){Icon(icon,null,tint=AccentBlue)}
+        if(cover.isNotBlank()) PlaylistCoverImage(cover,Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)),"Portada de $title",AccentPurple.copy(alpha=.12f),26.dp)
+        else Box(Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)).background(AccentPurple.copy(alpha=.14f)),contentAlignment=Alignment.Center){Icon(icon,null,tint=AccentPurple)}
         Spacer(Modifier.width(12.dp));Column(Modifier.weight(1f)){Text(title,color=fg,fontWeight=FontWeight.SemiBold);Text(sub,color=secondary,fontSize=12.sp)};Icon(Icons.Default.ChevronRight,null,tint=secondary)
     }
 }
@@ -1216,8 +1216,8 @@ private fun PlaylistDialog(title:String,initialName:String,initialDesc:String,in
         Surface(modifier=Modifier.fillMaxWidth(0.92f).heightIn(max=640.dp),shape=RoundedCornerShape(26.dp),color=Panel,tonalElevation=10.dp) {
             Column(Modifier.padding(22.dp),verticalArrangement=Arrangement.spacedBy(14.dp)) {
                 Row(verticalAlignment=Alignment.CenterVertically) {
-                    Box(Modifier.size(48.dp).clip(RoundedCornerShape(15.dp)).background(AccentBlue.copy(alpha=.18f)),contentAlignment=Alignment.Center) {
-                        Icon(Icons.Default.QueueMusic,null,tint=AccentCyan,modifier=Modifier.size(27.dp))
+                    Box(Modifier.size(48.dp).clip(RoundedCornerShape(15.dp)).background(AccentPurple.copy(alpha=.18f)),contentAlignment=Alignment.Center) {
+                        Icon(Icons.Default.QueueMusic,null,tint=AccentLavender,modifier=Modifier.size(27.dp))
                     }
                     Spacer(Modifier.width(13.dp))
                     Column(Modifier.weight(1f)) {
@@ -1228,16 +1228,16 @@ private fun PlaylistDialog(title:String,initialName:String,initialDesc:String,in
                 }
                 Box(Modifier.fillMaxWidth().height(110.dp).clip(RoundedCornerShape(18.dp)).background(Brush.linearGradient(listOf(Color(0xFF102D4A),Color(0xFF10202C)))),contentAlignment=Alignment.Center) {
                     if(cover.isNotBlank()) PlaylistCoverImage(cover,Modifier.fillMaxSize(),"Vista previa de portada",Color(0xFF101923),35.dp)
-                    else Column(horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(5.dp)) { Icon(Icons.Default.MusicNote,null,tint=AccentCyan,modifier=Modifier.size(35.dp)); Text("Tu playlist",color=Color.White,fontWeight=FontWeight.SemiBold); Text("Puedes cambiar la portada cuando quieras",color=Gray,fontSize=11.sp) }
+                    else Column(horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(5.dp)) { Icon(Icons.Default.MusicNote,null,tint=AccentLavender,modifier=Modifier.size(35.dp)); Text("Tu playlist",color=Color.White,fontWeight=FontWeight.SemiBold); Text("Puedes cambiar la portada cuando quieras",color=Gray,fontSize=11.sp) }
                 }
-                OutlinedTextField(value=name,onValueChange={name=it},modifier=Modifier.fillMaxWidth(),label={Text("Nombre de la playlist")},placeholder={Text("Por ejemplo: Favoritas de noche")},singleLine=true,shape=RoundedCornerShape(14.dp),leadingIcon={Icon(Icons.Default.Edit,null)},colors=OutlinedTextFieldDefaults.colors(focusedTextColor=Color.White,unfocusedTextColor=Color.White,focusedContainerColor=Color(0xFF101923),unfocusedContainerColor=Color(0xFF101923),focusedBorderColor=AccentBlue,unfocusedBorderColor=Gray.copy(alpha=.5f),focusedLabelColor=AccentBlue,unfocusedLabelColor=Gray,cursorColor=AccentBlue))
-                OutlinedTextField(value=desc,onValueChange={desc=it},modifier=Modifier.fillMaxWidth(),label={Text("Descripción (opcional)")},placeholder={Text("¿Qué canciones reúne?")},minLines=2,maxLines=3,shape=RoundedCornerShape(14.dp),colors=OutlinedTextFieldDefaults.colors(focusedTextColor=Color.White,unfocusedTextColor=Color.White,focusedContainerColor=Color(0xFF101923),unfocusedContainerColor=Color(0xFF101923),focusedBorderColor=AccentBlue,unfocusedBorderColor=Gray.copy(alpha=.5f),focusedLabelColor=AccentBlue,unfocusedLabelColor=Gray,cursorColor=AccentBlue))
+                OutlinedTextField(value=name,onValueChange={name=it},modifier=Modifier.fillMaxWidth(),label={Text("Nombre de la playlist")},placeholder={Text("Por ejemplo: Favoritas de noche")},singleLine=true,shape=RoundedCornerShape(14.dp),leadingIcon={Icon(Icons.Default.Edit,null)},colors=OutlinedTextFieldDefaults.colors(focusedTextColor=Color.White,unfocusedTextColor=Color.White,focusedContainerColor=Color(0xFF101923),unfocusedContainerColor=Color(0xFF101923),focusedBorderColor=AccentPurple,unfocusedBorderColor=Gray.copy(alpha=.5f),focusedLabelColor=AccentPurple,unfocusedLabelColor=Gray,cursorColor=AccentPurple))
+                OutlinedTextField(value=desc,onValueChange={desc=it},modifier=Modifier.fillMaxWidth(),label={Text("Descripción (opcional)")},placeholder={Text("¿Qué canciones reúne?")},minLines=2,maxLines=3,shape=RoundedCornerShape(14.dp),colors=OutlinedTextFieldDefaults.colors(focusedTextColor=Color.White,unfocusedTextColor=Color.White,focusedContainerColor=Color(0xFF101923),unfocusedContainerColor=Color(0xFF101923),focusedBorderColor=AccentPurple,unfocusedBorderColor=Gray.copy(alpha=.5f),focusedLabelColor=AccentPurple,unfocusedLabelColor=Gray,cursorColor=AccentPurple))
                 OutlinedButton(onClick={picker.launch(arrayOf("image/*"))},modifier=Modifier.fillMaxWidth(),shape=RoundedCornerShape(14.dp)) {
                     Icon(Icons.Default.Image,null);Spacer(Modifier.width(8.dp));Text(if(cover.isBlank()) "Elegir imagen de portada" else "Cambiar imagen de portada")
                 }
                 Row(horizontalArrangement=Arrangement.spacedBy(10.dp)) {
                     OutlinedButton(onClick=onDismiss,modifier=Modifier.weight(1f),shape=RoundedCornerShape(14.dp)){Text("Cancelar")}
-                    Button(onClick={onSave(name.trim(),desc.trim(),cover)},enabled=name.isNotBlank(),modifier=Modifier.weight(1f),shape=RoundedCornerShape(14.dp),colors=ButtonDefaults.buttonColors(containerColor=AccentBlue,contentColor=Color.White)){Icon(Icons.Default.Check,null);Spacer(Modifier.width(6.dp));Text("Guardar")}
+                    Button(onClick={onSave(name.trim(),desc.trim(),cover)},enabled=name.isNotBlank(),modifier=Modifier.weight(1f),shape=RoundedCornerShape(14.dp),colors=ButtonDefaults.buttonColors(containerColor=AccentPurple,contentColor=Color.White)){Icon(Icons.Default.Check,null);Spacer(Modifier.width(6.dp));Text("Guardar")}
                 }
             }
         }
@@ -1294,14 +1294,15 @@ private fun SettingsPage(
                         listOf("Sistema" to "system", "Oscuro" to "dark", "Claro" to "light").forEach { (label, key) ->
                             Row(Modifier.fillMaxWidth().clickable { onTheme(key) }.padding(vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Text(label, color = fg, modifier = Modifier.weight(1f))
-                                RadioButton(selected = theme == key, onClick = { onTheme(key) }, colors = RadioButtonDefaults.colors(selectedColor = AccentBlue))
+                                RadioButton(selected = theme == key, onClick = { onTheme(key) }, colors = RadioButtonDefaults.colors(selectedColor = AccentPurple))
                             }
                         }
-                        HorizontalDivider(color = AccentCyan.copy(alpha = .25f))
+                        HorizontalDivider(color = AccentLavender.copy(alpha = .25f))
                         Text("Identidad Lunora", color = fg, fontWeight = FontWeight.SemiBold)
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Box(Modifier.size(24.dp).clip(RoundedCornerShape(6.dp)).background(AccentBlue))
-                            Box(Modifier.size(24.dp).clip(RoundedCornerShape(6.dp)).background(AccentCyan))
+                            Box(Modifier.size(24.dp).clip(RoundedCornerShape(6.dp)).background(AccentPurple))
+                            Box(Modifier.size(24.dp).clip(RoundedCornerShape(6.dp)).background(AccentSky))
+                            Box(Modifier.size(24.dp).clip(RoundedCornerShape(6.dp)).background(AccentPink))
                             Text("Morado con detalles celestes y rosas", color = sec)
                         }
                     }
@@ -1311,14 +1312,14 @@ private fun SettingsPage(
                 Card(colors = CardDefaults.cardColors(containerColor = card)) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text("Crossfade: " + crossfade.toInt() + " s", color = fg, fontWeight = FontWeight.SemiBold)
-                        Slider(value = crossfade, onValueChange = onCrossfade, valueRange = 0f..12f, steps = 11, colors = SliderDefaults.colors(thumbColor = AccentBlue, activeTrackColor = AccentBlue))
+                        Slider(value = crossfade, onValueChange = onCrossfade, valueRange = 0f..12f, steps = 11, colors = SliderDefaults.colors(thumbColor = AccentPurple, activeTrackColor = AccentPurple))
                         Text("La preferencia se guarda, pero la mezcla cruzada real aún necesita integrarse en el motor de reproducción.", color = sec, fontSize = 12.sp)
-                        HorizontalDivider(color = AccentCyan.copy(alpha = .2f))
+                        HorizontalDivider(color = AccentLavender.copy(alpha = .2f))
                         SettingsSwitch("Audio mono", "Mezcla los canales izquierdo y derecho y reproduce la mezcla por ambos lados.", mono, onMono, fg, sec)
                         SettingsSwitch("Normalización de volumen", "El ajuste actual cambia el nivel de salida, no analiza la sonoridad de cada canción.", normalize, onNormalize, fg, sec)
                         Text("Nivel de volumen", color = fg, fontWeight = FontWeight.SemiBold)
                         Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            listOf("Bajo", "Normal", "Alto").forEach { FilterChip(selected = volume == it, onClick = { onVolume(it) }, label = { Text(it) }, colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentBlue.copy(alpha = .2f), selectedLabelColor = fg)) }
+                            listOf("Bajo", "Normal", "Alto").forEach { FilterChip(selected = volume == it, onClick = { onVolume(it) }, label = { Text(it) }, colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentPurple.copy(alpha = .2f), selectedLabelColor = fg)) }
                         }
                         SettingsSwitch("Ecualizador", "Ajusta el sonido durante la reproducción.", eq, onEq, fg, sec)
                         if (eq) {
@@ -1329,9 +1330,9 @@ private fun SettingsPage(
                                 val frequencies=listOf("60","230","910","3.6k","14k")
                                 eqBands.forEachIndexed { index,value ->
                                     Column(Modifier.weight(1f),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.Center) {
-                                        Text("%+d".format(value.toInt()),color=AccentBlue,fontSize=13.sp,fontWeight=FontWeight.Bold)
+                                        Text("%+d".format(value.toInt()),color=AccentPurple,fontSize=13.sp,fontWeight=FontWeight.Bold)
                                         Box(Modifier.height(270.dp).fillMaxWidth(),contentAlignment=Alignment.Center) {
-                                            Slider(value=value,onValueChange={onBand(index,it)},valueRange=-15f..15f,steps=29,modifier=Modifier.width(320.dp).height(48.dp).rotate(-90f),colors=SliderDefaults.colors(thumbColor=AccentBlue,activeTrackColor=AccentBlue,inactiveTrackColor=AccentCyan.copy(alpha=.18f)))
+                                            Slider(value=value,onValueChange={onBand(index,it)},valueRange=-15f..15f,steps=29,modifier=Modifier.width(320.dp).height(48.dp).rotate(-90f),colors=SliderDefaults.colors(thumbColor=AccentPurple,activeTrackColor=AccentPurple,inactiveTrackColor=AccentLavender.copy(alpha=.18f)))
                                         }
                                         Text(frequencies[index],color=sec,fontSize=11.sp,fontWeight=FontWeight.SemiBold)
                                     }
@@ -1358,15 +1359,15 @@ private fun SettingsPage(
                         Row(Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(8.dp))){
                             Box(Modifier.weight((appFraction/segmentSum).coerceAtLeast(0.0001f)).fillMaxHeight().background(Color(0xFFFFC107)))
                             Box(Modifier.weight((songFraction/segmentSum).coerceAtLeast(0.0001f)).fillMaxHeight().background(Color(0xFF39B54A)))
-                            Box(Modifier.weight((otherFraction/segmentSum).coerceAtLeast(0.0001f)).fillMaxHeight().background(AccentBlue.copy(alpha=.65f)))
-                            Box(Modifier.weight((freeFraction/segmentSum).coerceAtLeast(0.0001f)).fillMaxHeight().background(AccentCyan.copy(alpha=.12f)))
+                            Box(Modifier.weight((otherFraction/segmentSum).coerceAtLeast(0.0001f)).fillMaxHeight().background(AccentPurple.copy(alpha=.65f)))
+                            Box(Modifier.weight((freeFraction/segmentSum).coerceAtLeast(0.0001f)).fillMaxHeight().background(AccentLavender.copy(alpha=.12f)))
                         }
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text(if (total > 0) (usage * 100).toInt().toString() + "% utilizado" else "Sin datos", color = AccentBlue, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                            Text(if (total > 0) (usage * 100).toInt().toString() + "% utilizado" else "Sin datos", color = AccentPurple, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                             Text("Disponible: " + if (total > 0) bytes(free) else "—", color = sec, fontSize = 12.sp)
                         }
                         Text("Capacidad total: " + if (total > 0) bytes(total) else "No disponible", color = sec, fontSize = 12.sp)
-                        HorizontalDivider(color = AccentCyan.copy(alpha = .2f))
+                        HorizontalDivider(color = AccentLavender.copy(alpha = .2f))
                         StorageRow("Canciones indexadas", songCount.toString(), fg, sec)
                         StorageRow("Tamaño de canciones", bytes(songBytes), fg, sec)
                         StorageRow("Datos internos de la app", bytes(appBytes), fg, sec)
@@ -1382,7 +1383,7 @@ private fun SettingsPage(
                         Text("Administración de datos", color = fg, fontWeight = FontWeight.Bold)
                         Text("Limpiar caché elimina archivos temporales. Limpiar los datos locales restablece playlists, favoritos y preferencias; no borra las canciones originales.", color = sec, fontSize = 13.sp)
                         OutlinedButton(onClick = onCache, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Default.DeleteSweep, null); Spacer(Modifier.width(8.dp)); Text("Limpiar caché") }
-                        Button(onClick = onClearData, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = AccentBlue, contentColor = Color.White)) { Icon(Icons.Default.DeleteForever, null); Spacer(Modifier.width(8.dp)); Text("Restablecer datos de la app") }
+                        Button(onClick = onClearData, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = AccentPurple, contentColor = Color.White)) { Icon(Icons.Default.DeleteForever, null); Spacer(Modifier.width(8.dp)); Text("Restablecer datos de la app") }
                     }
                 }
             }
@@ -1390,7 +1391,7 @@ private fun SettingsPage(
                 Card(colors = CardDefaults.cardColors(containerColor = card)) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Image(painter = painterResource(R.drawable.lunora_imagotipo), contentDescription = "Imagotipo de Lunora", modifier = Modifier.fillMaxWidth().height(112.dp), contentScale = androidx.compose.ui.layout.ContentScale.Fit)
-                        Text("Versión 0.1.0 Beta", color = AccentBlue, fontWeight = FontWeight.SemiBold)
+                        Text("Versión 0.1.0 Beta", color = AccentPurple, fontWeight = FontWeight.SemiBold)
                         Text("Tu música, en tu propio ritmo.", color = sec)
                     }
                 }
@@ -1403,7 +1404,7 @@ private fun SettingsPage(
 private fun SettingsCategory(title: String, description: String, icon: androidx.compose.ui.graphics.vector.ImageVector, fg: Color, sec: Color, card: Color, dark: Boolean, onClick: () -> Unit) {
     Card(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick), colors = CardDefaults.cardColors(containerColor = card), shape = RoundedCornerShape(16.dp)) {
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(46.dp).clip(RoundedCornerShape(13.dp)).background(AccentBlue.copy(alpha = .14f)), contentAlignment = Alignment.Center) { Icon(icon, null, tint = AccentBlue) }
+            Box(Modifier.size(46.dp).clip(RoundedCornerShape(13.dp)).background(AccentPurple.copy(alpha = .14f)), contentAlignment = Alignment.Center) { Icon(icon, null, tint = AccentPurple) }
             Spacer(Modifier.width(13.dp))
             Column(Modifier.weight(1f)) { Text(title, color = fg, fontWeight = FontWeight.SemiBold); Spacer(Modifier.height(3.dp)); Text(description, color = sec, fontSize = 12.sp) }
             Icon(Icons.Default.ChevronRight, null, tint = sec)
@@ -1415,7 +1416,7 @@ private fun SettingsCategory(title: String, description: String, icon: androidx.
 private fun SettingsSwitch(title: String, description: String, checked: Boolean, onChecked: (Boolean) -> Unit, fg: Color, sec: Color) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f).padding(end = 10.dp)) { Text(title, color = fg, fontWeight = FontWeight.SemiBold); Text(description, color = sec, fontSize = 12.sp) }
-        Switch(checked = checked, onCheckedChange = onChecked, colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = AccentBlue))
+        Switch(checked = checked, onCheckedChange = onChecked, colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = AccentPurple))
     }
 }
 
