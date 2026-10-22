@@ -873,7 +873,7 @@ private fun NegativeMusicApp() {
                     }
                     OutlinedTextField(value=metadataTitle,onValueChange={metadataTitle=it},modifier=Modifier.fillMaxWidth(),singleLine=true,label={Text("Título")},colors=OutlinedTextFieldDefaults.colors(focusedTextColor=Color.White,unfocusedTextColor=Color.White,cursorColor=AccentPurple,focusedLabelColor=AccentPurple,unfocusedLabelColor=Gray))
                     OutlinedTextField(value=metadataArtist,onValueChange={metadataArtist=it},modifier=Modifier.fillMaxWidth(),singleLine=true,label={Text("Artista")},colors=OutlinedTextFieldDefaults.colors(focusedTextColor=Color.White,unfocusedTextColor=Color.White,cursorColor=AccentPurple,focusedLabelColor=AccentPurple,unfocusedLabelColor=Gray))
-                    val coverPicker=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()){uri->if(uri!=null){val saved=copyPlaylistCover(ctx,uri);if(saved!=null)metadataCover=saved else toast="No se pudo guardar la imagen seleccionada."}}
+                    val coverPicker=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()){uri->if(uri!=null)scope.launch{val saved=withContext(Dispatchers.IO){copyPlaylistCover(ctx,uri)};if(saved!=null)metadataCover=saved else toast="No se pudo guardar la imagen seleccionada."}}
                     if(metadataCover.isNotBlank()) {
                         PlaylistCoverImage(metadataCover,Modifier.fillMaxWidth().height(150.dp).clip(RoundedCornerShape(14.dp)),"Portada seleccionada",Color(0xFF201631),36.dp)
                     }
@@ -1211,7 +1211,10 @@ private fun PlaylistDialog(title:String,initialName:String,initialDesc:String,in
     var desc by remember { mutableStateOf(initialDesc) }
     var cover by remember { mutableStateOf(initialCover) }
     val context=LocalContext.current
-    val picker=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()){uri->if(uri!=null){val saved=copyPlaylistCover(context,uri);if(saved!=null)cover=saved}}
+    val scope=rememberCoroutineScope()
+    var coverLoading by remember { mutableStateOf(false) }
+    var coverError by remember { mutableStateOf(false) }
+    val picker=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()){uri->if(uri!=null){coverLoading=true;coverError=false;scope.launch{val saved=withContext(Dispatchers.IO){copyPlaylistCover(context,uri)};if(saved!=null)cover=saved else coverError=true;coverLoading=false}}}
     androidx.compose.ui.window.Dialog(onDismissRequest=onDismiss,properties=androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth=false)) {
         Surface(modifier=Modifier.fillMaxWidth(0.92f).heightIn(max=640.dp),shape=RoundedCornerShape(26.dp),color=Panel,tonalElevation=10.dp) {
             Column(Modifier.padding(22.dp),verticalArrangement=Arrangement.spacedBy(14.dp)) {
@@ -1232,12 +1235,13 @@ private fun PlaylistDialog(title:String,initialName:String,initialDesc:String,in
                 }
                 OutlinedTextField(value=name,onValueChange={name=it},modifier=Modifier.fillMaxWidth(),label={Text("Nombre de la playlist")},placeholder={Text("Por ejemplo: Favoritas de noche")},singleLine=true,shape=RoundedCornerShape(14.dp),leadingIcon={Icon(Icons.Default.Edit,null)},colors=OutlinedTextFieldDefaults.colors(focusedTextColor=Color.White,unfocusedTextColor=Color.White,focusedContainerColor=Color(0xFF101923),unfocusedContainerColor=Color(0xFF101923),focusedBorderColor=AccentPurple,unfocusedBorderColor=Gray.copy(alpha=.5f),focusedLabelColor=AccentPurple,unfocusedLabelColor=Gray,cursorColor=AccentPurple))
                 OutlinedTextField(value=desc,onValueChange={desc=it},modifier=Modifier.fillMaxWidth(),label={Text("Descripción (opcional)")},placeholder={Text("¿Qué canciones reúne?")},minLines=2,maxLines=3,shape=RoundedCornerShape(14.dp),colors=OutlinedTextFieldDefaults.colors(focusedTextColor=Color.White,unfocusedTextColor=Color.White,focusedContainerColor=Color(0xFF101923),unfocusedContainerColor=Color(0xFF101923),focusedBorderColor=AccentPurple,unfocusedBorderColor=Gray.copy(alpha=.5f),focusedLabelColor=AccentPurple,unfocusedLabelColor=Gray,cursorColor=AccentPurple))
-                OutlinedButton(onClick={picker.launch(arrayOf("image/*"))},modifier=Modifier.fillMaxWidth(),shape=RoundedCornerShape(14.dp)) {
-                    Icon(Icons.Default.Image,null);Spacer(Modifier.width(8.dp));Text(if(cover.isBlank()) "Elegir imagen de portada" else "Cambiar imagen de portada")
+                OutlinedButton(onClick={picker.launch(arrayOf("image/*"))},enabled=!coverLoading,modifier=Modifier.fillMaxWidth(),shape=RoundedCornerShape(14.dp)) {
+                    Icon(Icons.Default.Image,null);Spacer(Modifier.width(8.dp));Text(when { coverLoading -> "Guardando portada…"; cover.isBlank() -> "Elegir imagen de portada"; else -> "Cambiar imagen de portada" })
                 }
+                if (coverError) Text("No se pudo guardar la imagen seleccionada.", color=AccentPink, fontSize=12.sp)
                 Row(horizontalArrangement=Arrangement.spacedBy(10.dp)) {
-                    OutlinedButton(onClick=onDismiss,modifier=Modifier.weight(1f),shape=RoundedCornerShape(14.dp)){Text("Cancelar")}
-                    Button(onClick={onSave(name.trim(),desc.trim(),cover)},enabled=name.isNotBlank(),modifier=Modifier.weight(1f),shape=RoundedCornerShape(14.dp),colors=ButtonDefaults.buttonColors(containerColor=AccentPurple,contentColor=Color.White)){Icon(Icons.Default.Check,null);Spacer(Modifier.width(6.dp));Text("Guardar")}
+                    OutlinedButton(onClick=onDismiss,enabled=!coverLoading,modifier=Modifier.weight(1f),shape=RoundedCornerShape(14.dp)){Text("Cancelar")}
+                    Button(onClick={onSave(name.trim(),desc.trim(),cover)},enabled=name.isNotBlank()&&!coverLoading,modifier=Modifier.weight(1f),shape=RoundedCornerShape(14.dp),colors=ButtonDefaults.buttonColors(containerColor=AccentPurple,contentColor=Color.White)){Icon(Icons.Default.Check,null);Spacer(Modifier.width(6.dp));Text("Guardar")}
                 }
             }
         }
