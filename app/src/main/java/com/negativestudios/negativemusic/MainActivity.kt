@@ -487,19 +487,23 @@ private fun NegativeMusicApp() {
 
     BackHandler {
         when {
-            showPlayer -> showPlayer=false
-            showQueue -> showQueue=false
-            menuSong != null -> menuSong=null
-            metadataSong != null -> { if (!metadataCoverLoading) metadataSong=null }
-            showAddSongsDialog -> showAddSongsDialog=false
-            createDialog -> { createDialog=false; addSong=null }
-            editTarget != null -> editTarget=null
-            showTimer -> showTimer=false
-            settingsSection != null -> settingsSection=null
-            page.startsWith("playlist:") -> page=playlistOrigin
-            page=="Descargas" || page=="Favoritos" -> page="Biblioteca"
-            page=="Buscar" || page=="Biblioteca" || page=="Ajustes" -> {page="Inicio";settingsSection=null}
-            else -> {page="Inicio";search=""}
+            clearDataDialog -> { if (!clearingData) clearDataDialog = false }
+            outputDialog -> outputDialog = false
+            playlistDeleteTarget != null -> playlistDeleteTarget = null
+            playlistPickerSong != null -> playlistPickerSong = null
+            metadataSong != null -> { if (!metadataCoverLoading) metadataSong = null }
+            menuSong != null -> menuSong = null
+            showQueue -> showQueue = false
+            showAddSongsDialog -> showAddSongsDialog = false
+            createDialog -> { createDialog = false; addSong = null }
+            editTarget != null -> editTarget = null
+            showTimer -> showTimer = false
+            showPlayer -> { showPlayer = false; playerDrag = 0f; playerDismissing = false }
+            settingsSection != null -> settingsSection = null
+            page.startsWith("playlist:") -> page = playlistOrigin
+            page == "Descargas" || page == "Favoritos" -> page = "Biblioteca"
+            page == "Buscar" || page == "Biblioteca" || page == "Ajustes" -> { page = "Inicio"; settingsSection = null }
+            else -> { page = "Inicio"; search = "" }
         }
     }
     MaterialTheme(colorScheme = if (dark) darkColorScheme(primary=AccentPurple, secondary=AccentSky, background=bg, surface=surface) else lightColorScheme(primary=AccentPurple, secondary=AccentSky, secondaryContainer=Color(0xFFDDF5FF), onSecondaryContainer=Color(0xFF15384A), surfaceVariant=Color(0xFFF0EAFF), background=bg, surface=surface), typography = if (Locale.getDefault().language == "ja") ZenMaruGothicTypography else QuicksandTypography) {
