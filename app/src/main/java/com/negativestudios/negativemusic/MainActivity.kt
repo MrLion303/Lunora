@@ -65,6 +65,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.input.pointer.consume
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -118,6 +121,65 @@ private fun typographyWithFontFamily(fontFamily: FontFamily): Typography {
 }
 private val QuicksandTypography = typographyWithFontFamily(QuicksandFamily)
 private val ZenMaruGothicTypography = typographyWithFontFamily(ZenMaruGothicFamily)
+
+@Composable
+private fun VerticalEqualizerSlider(
+    value: Float,
+    onValueChange: (Float) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .pointerInput(onValueChange) {
+                detectTapGestures { offset ->
+                    val inset = 10.dp.toPx()
+                    val usableHeight = (size.height - inset * 2).coerceAtLeast(1f)
+                    val fraction = (1f - ((offset.y - inset) / usableHeight)).coerceIn(0f, 1f)
+                    onValueChange(fraction * 30f - 15f)
+                }
+            }
+            .pointerInput(onValueChange) {
+                detectVerticalDragGestures(
+                    onVerticalDrag = { change, _ ->
+                        change.consume()
+                        val inset = 10.dp.toPx()
+                        val usableHeight = (size.height - inset * 2).coerceAtLeast(1f)
+                        val fraction = (1f - ((change.position.y - inset) / usableHeight)).coerceIn(0f, 1f)
+                        onValueChange(fraction * 30f - 15f)
+                    }
+                )
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Canvas(Modifier.fillMaxSize()) {
+            val centerX = size.width / 2f
+            val inset = 10.dp.toPx()
+            val top = inset
+            val bottom = (size.height - inset).coerceAtLeast(top + 1f)
+            val fraction = ((value + 15f) / 30f).coerceIn(0f, 1f)
+            val thumbY = bottom - fraction * (bottom - top)
+            drawLine(
+                color = AccentLavender.copy(alpha = 0.22f),
+                start = Offset(centerX, top),
+                end = Offset(centerX, bottom),
+                strokeWidth = 5.dp.toPx(),
+                cap = StrokeCap.Round
+            )
+            drawLine(
+                color = AccentPurple,
+                start = Offset(centerX, bottom),
+                end = Offset(centerX, thumbY),
+                strokeWidth = 5.dp.toPx(),
+                cap = StrokeCap.Round
+            )
+            drawCircle(
+                color = AccentPurple,
+                radius = 9.dp.toPx(),
+                center = Offset(centerX, thumbY)
+            )
+        }
+    }
+}
 private val Dark = Color(0xFF070B10)
 private val Panel = Color(0xFF0B1118)
 private val Gray = Color(0xFFB3C0CE)
@@ -1341,9 +1403,11 @@ private fun SettingsPage(
                                 eqBands.forEachIndexed { index,value ->
                                     Column(Modifier.weight(1f),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.Center) {
                                         Text("%+d".format(value.toInt()),color=AccentPurple,fontSize=13.sp,fontWeight=FontWeight.Bold)
-                                        Box(Modifier.height(270.dp).fillMaxWidth(),contentAlignment=Alignment.Center) {
-                                            Slider(value=value,onValueChange={onBand(index,it)},valueRange=-15f..15f,steps=29,modifier=Modifier.requiredWidth(270.dp).height(48.dp).rotate(-90f),colors=SliderDefaults.colors(thumbColor=AccentPurple,activeTrackColor=AccentPurple,inactiveTrackColor=AccentLavender.copy(alpha=.18f)))
-                                        }
+                                        VerticalEqualizerSlider(
+                                            value = value,
+                                            onValueChange = { onBand(index, it) },
+                                            modifier = Modifier.fillMaxWidth().height(290.dp)
+                                        )
                                         Text(frequencies[index],color=sec,fontSize=11.sp,fontWeight=FontWeight.SemiBold)
                                     }
                                 }
