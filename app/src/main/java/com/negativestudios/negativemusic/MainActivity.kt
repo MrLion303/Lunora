@@ -225,6 +225,9 @@ private fun NegativeMusicApp() {
     var clearDataDialog by remember { mutableStateOf(false) }
     var outputDialog by remember { mutableStateOf(false) }
     var outputNames by remember { mutableStateOf(emptyList<String>()) }
+    var appBytes by remember { mutableLongStateOf(0L) }
+    var cacheBytes by remember { mutableLongStateOf(0L) }
+    var storageRefreshKey by remember { mutableIntStateOf(0) }
     val dark = when (theme) { "light" -> false; "system" -> isSystemInDarkTheme(); else -> true }
     val bg = if (dark) Dark else Color(0xFFF7F7F7)
     val fg = if (dark) Color.White else Color(0xFF171717)
@@ -240,6 +243,16 @@ private fun NegativeMusicApp() {
         val future: ListenableFuture<MediaController> = MediaController.Builder(ctx, SessionToken(ctx, ComponentName(ctx, MusicPlaybackService::class.java))).buildAsync()
         future.addListener({ try { val connected = future.get(); connected.volume = configuredOutputVolume(); playing = connected.isPlaying; repeat = connected.repeatMode; controller = connected } catch (_: ExecutionException) { toast = "No se pudo iniciar el reproductor." } catch (_: Exception) { toast = "Error al conectar el reproductor." } }, ContextCompat.getMainExecutor(ctx))
         onDispose { MediaController.releaseFuture(future); controller = null }
+    }
+    LaunchedEffect(page, settingsSection, storageRefreshKey) {
+        if (page == "Ajustes" && settingsSection == "Almacenamiento") {
+            val sizes = withContext(Dispatchers.IO) {
+                fun sizeOf(root: File): Long = root.walkTopDown().filter { it.isFile }.sumOf { it.length() }
+                sizeOf(ctx.filesDir) to sizeOf(ctx.cacheDir)
+            }
+            appBytes = sizes.first
+            cacheBytes = sizes.second
+        }
     }
     LaunchedEffect(Unit) {
         if (ContextCompat.checkSelfPermission(ctx, audioPermission()) == PackageManager.PERMISSION_GRANTED) {
@@ -319,7 +332,7 @@ private fun NegativeMusicApp() {
             uniqueSongs.drop(chosenIndex + 1).filter { it.uri != chosen.uri && it.uri !in queuedUris }
         }
         val rest = (manuallyQueued + candidates).distinctBy { it.uri }
-        val orderedRest = if (mode > 0) rest.shuffled() else rest
+        val orderedRest = if (mode > 0) (manuallyQueued + candidates.shuffled()).distinctBy { it.uri } else rest
         queueSourceUris = (listOf(chosen) + rest).map { it.uri }
         queueScopeUris = queueSourceUris.toSet()
         val ordered = listOf(chosen) + orderedRest
@@ -425,8 +438,10 @@ private fun NegativeMusicApp() {
         val currentIndex = p.currentMediaItemIndex
         if (currentIndex < 0 || current.mediaId !in queueScopeUris) return
         val currentSong = songs.firstOrNull { it.uri == current.mediaId } ?: return
-        val candidateIndices = ((currentIndex + 1) until minOf(p.mediaItemCount, currentIndex + 9))
-            .filter { p.getMediaItemAt(it).mediaId in queueScopeUris }
+        var nextIndex = currentIndex + 1
+        while (nextIndex < p.mediaItemCount && p.getMediaItemAt(nextIndex).mediaId in manualQueueUris) nextIndex++
+        val candidateIndices = (nextIndex until minOf(p.mediaItemCount, nextIndex + 8))
+            .filter { p.getMediaItemAt(it).mediaId in queueScopeUris && p.getMediaItemAt(it).mediaId !in manualQueueUris }
         if (candidateIndices.isEmpty()) return
 
         magicShuffleAnalysisBusy = true
@@ -445,12 +460,12 @@ private fun NegativeMusicApp() {
                 }
             }
             val activeMode = if (queueIsGlobal) globalShuffleMode else individualShuffleMode
-            if (bestIndex > currentIndex + 1 &&
+            if (bestIndex > nextIndex &&
                 p.currentMediaItem?.mediaId == current.mediaId &&
                 activeMode == 2 &&
                 current.mediaId in queueScopeUris
             ) {
-                p.moveMediaItem(bestIndex, currentIndex + 1)
+                p.moveMediaItem(bestIndex, nextIndex)
             }
         } finally {
             magicShuffleAnalysisBusy = false
@@ -493,7 +508,7 @@ private fun NegativeMusicApp() {
             }
             Box(Modifier.weight(1f).fillMaxWidth()) {
             when {
-                page == "Ajustes" -> SettingsPage(theme, settingsSection, { settingsSection = it }, { theme=it; prefs.edit().putString("theme",it).apply() }, crossfade, { crossfade=it; prefs.edit().putInt("crossfade",it.toInt()).apply() }, mono, { mono=it; prefs.edit().putBoolean("mono",it).apply(); PlaybackAudioEffects.setMonoEnabled(it) }, normalize, { normalize=it; prefs.edit().putBoolean("normalize",it).apply(); controller?.volume=configuredOutputVolume() }, volume, { volume=it; prefs.edit().putString("volume",it).apply(); controller?.volume=configuredOutputVolume() }, eqOn, { eqOn=it; prefs.edit().putBoolean("eq",it).apply(); PlaybackAudioEffects.setEnabled(it) }, eqBands, { index,value -> val updated=eqBands.toMutableList(); updated[index]=value; eqBands=updated; prefs.edit().putInt("eqBand$index",value.toInt()).apply(); PlaybackAudioEffects.applyBands(updated.map{it.toInt()}) }, songs.size, songs.sumOf{it.size}, ctx.filesDir.walkTopDown().filter{it.isFile}.sumOf{it.length()}, ctx.cacheDir.walkTopDown().filter{it.isFile}.sumOf{it.length()}, { ctx.cacheDir.deleteRecursively(); ctx.cacheDir.mkdirs(); toast="Caché limpiada." }, { clearDataDialog=true })
+                page == "Ajustes" -> SettingsPage(theme, settingsSection, { settingsSection = it }, { theme=it; prefs.edit().putString("theme",it).apply() }, crossfade, { crossfade=it; prefs.edit().putInt("crossfade",it.toInt()).apply() }, mono, { mono=it; prefs.edit().putBoolean("mono",it).apply(); PlaybackAudioEffects.setMonoEnabled(it) }, normalize, { normalize=it; prefs.edit().putBoolean("normalize",it).apply(); controller?.volume=configuredOutputVolume() }, volume, { volume=it; prefs.edit().putString("volume",it).apply(); controller?.volume=configuredOutputVolume() }, eqOn, { eqOn=it; prefs.edit().putBoolean("eq",it).apply(); PlaybackAudioEffects.setEnabled(it) }, eqBands, { index,value -> val updated=eqBands.toMutableList(); updated[index]=value; eqBands=updated; prefs.edit().putInt("eqBand$index",value.toInt()).apply(); PlaybackAudioEffects.applyBands(updated.map{it.toInt()}) }, songs.size, songs.sumOf{it.size}, appBytes, cacheBytes, { scope.launch { withContext(Dispatchers.IO) { ctx.cacheDir.deleteRecursively(); ctx.cacheDir.mkdirs() }; storageRefreshKey++; toast="Caché limpiada." } }, { clearDataDialog=true })
                 page == "Buscar" -> Column(Modifier.fillMaxSize()) {
                     OutlinedTextField(search,{search=it},Modifier.fillMaxWidth().padding(horizontal=16.dp),placeholder={Text("¿Qué quieres escuchar?")},leadingIcon={Icon(Icons.Default.Search,null)},singleLine=true)
                     SongRows(visibleSongs,favorites,fg,secondary,now?.uri,dark,{play(visibleSongs,it);showPlayer=true},{menuSong=it},{favorite(it)},{queue(it)}, Modifier.weight(1f))
