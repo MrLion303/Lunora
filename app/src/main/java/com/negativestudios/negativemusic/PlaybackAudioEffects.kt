@@ -10,6 +10,7 @@ import android.media.audiofx.Equalizer
 object PlaybackAudioEffects {
     private var equalizer: Equalizer? = null
     @Volatile private var monoProcessor: MonoAudioProcessor? = null
+    @Volatile private var normalizationProcessor: LoudnessNormalizationProcessor? = null
 
     @Synchronized
     fun registerMonoProcessor(processor: MonoAudioProcessor?) {
@@ -19,6 +20,16 @@ object PlaybackAudioEffects {
     @Synchronized
     fun setMonoEnabled(enabled: Boolean) {
         monoProcessor?.setMonoEnabled(enabled)
+    }
+
+    @Synchronized
+    fun registerNormalizationProcessor(processor: LoudnessNormalizationProcessor?) {
+        normalizationProcessor = processor
+    }
+
+    @Synchronized
+    fun setNormalizationEnabled(enabled: Boolean) {
+        normalizationProcessor?.setEnabled(enabled)
     }
 
     @Synchronized
