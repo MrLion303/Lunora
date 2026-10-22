@@ -231,12 +231,14 @@ private fun NegativeMusicApp() {
     val surface = if (dark) Panel else Color.White
     val secondary = if (dark) Gray else Color(0xFF666666)
 
+    fun configuredOutputVolume(): Float = (when (volume) { "Bajo" -> 0.55f; "Alto" -> 1f; else -> 0.8f }) * if (normalize) 0.85f else 1f
+
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
         scope.launch { if (ok) songs = withContext(Dispatchers.IO) { scanMusic(ctx) }; loading = false }
     }
     DisposableEffect(ctx) {
         val future: ListenableFuture<MediaController> = MediaController.Builder(ctx, SessionToken(ctx, ComponentName(ctx, MusicPlaybackService::class.java))).buildAsync()
-        future.addListener({ try { controller = future.get() } catch (_: ExecutionException) { toast = "No se pudo iniciar el reproductor." } catch (_: Exception) { toast = "Error al conectar el reproductor." } }, ContextCompat.getMainExecutor(ctx))
+        future.addListener({ try { val connected = future.get(); connected.volume = configuredOutputVolume(); playing = connected.isPlaying; repeat = connected.repeatMode; controller = connected } catch (_: ExecutionException) { toast = "No se pudo iniciar el reproductor." } catch (_: Exception) { toast = "Error al conectar el reproductor." } }, ContextCompat.getMainExecutor(ctx))
         onDispose { MediaController.releaseFuture(future); controller = null }
     }
     LaunchedEffect(Unit) {
@@ -255,6 +257,8 @@ private fun NegativeMusicApp() {
             override fun onRepeatModeChanged(repeatModeValue: Int) { repeat = repeatModeValue }
         }
         p.addListener(listener)
+        playing = p.isPlaying
+        repeat = p.repeatMode
         now = songs.firstOrNull { it.uri == p.currentMediaItem?.localConfiguration?.uri?.toString() }
         onDispose { p.removeListener(listener) }
     }
@@ -489,7 +493,7 @@ private fun NegativeMusicApp() {
             }
             Box(Modifier.weight(1f).fillMaxWidth()) {
             when {
-                page == "Ajustes" -> SettingsPage(theme, settingsSection, { settingsSection = it }, { theme=it; prefs.edit().putString("theme",it).apply() }, crossfade, { crossfade=it; prefs.edit().putInt("crossfade",it.toInt()).apply() }, mono, { mono=it; prefs.edit().putBoolean("mono",it).apply(); PlaybackAudioEffects.setMonoEnabled(it) }, normalize, { normalize=it; prefs.edit().putBoolean("normalize",it).apply(); controller?.volume=if(it) .85f else 1f }, volume, { volume=it; prefs.edit().putString("volume",it).apply(); controller?.volume=when(it){"Bajo"->.55f;"Alto"->1f;else->.8f} }, eqOn, { eqOn=it; prefs.edit().putBoolean("eq",it).apply(); PlaybackAudioEffects.setEnabled(it) }, eqBands, { index,value -> val updated=eqBands.toMutableList(); updated[index]=value; eqBands=updated; prefs.edit().putInt("eqBand$index",value.toInt()).apply(); PlaybackAudioEffects.applyBands(updated.map{it.toInt()}) }, songs.size, songs.sumOf{it.size}, ctx.filesDir.walkTopDown().filter{it.isFile}.sumOf{it.length()}, ctx.cacheDir.walkTopDown().filter{it.isFile}.sumOf{it.length()}, { ctx.cacheDir.deleteRecursively(); ctx.cacheDir.mkdirs(); toast="Caché limpiada." }, { clearDataDialog=true })
+                page == "Ajustes" -> SettingsPage(theme, settingsSection, { settingsSection = it }, { theme=it; prefs.edit().putString("theme",it).apply() }, crossfade, { crossfade=it; prefs.edit().putInt("crossfade",it.toInt()).apply() }, mono, { mono=it; prefs.edit().putBoolean("mono",it).apply(); PlaybackAudioEffects.setMonoEnabled(it) }, normalize, { normalize=it; prefs.edit().putBoolean("normalize",it).apply(); controller?.volume=configuredOutputVolume() }, volume, { volume=it; prefs.edit().putString("volume",it).apply(); controller?.volume=configuredOutputVolume() }, eqOn, { eqOn=it; prefs.edit().putBoolean("eq",it).apply(); PlaybackAudioEffects.setEnabled(it) }, eqBands, { index,value -> val updated=eqBands.toMutableList(); updated[index]=value; eqBands=updated; prefs.edit().putInt("eqBand$index",value.toInt()).apply(); PlaybackAudioEffects.applyBands(updated.map{it.toInt()}) }, songs.size, songs.sumOf{it.size}, ctx.filesDir.walkTopDown().filter{it.isFile}.sumOf{it.length()}, ctx.cacheDir.walkTopDown().filter{it.isFile}.sumOf{it.length()}, { ctx.cacheDir.deleteRecursively(); ctx.cacheDir.mkdirs(); toast="Caché limpiada." }, { clearDataDialog=true })
                 page == "Buscar" -> Column(Modifier.fillMaxSize()) {
                     OutlinedTextField(search,{search=it},Modifier.fillMaxWidth().padding(horizontal=16.dp),placeholder={Text("¿Qué quieres escuchar?")},leadingIcon={Icon(Icons.Default.Search,null)},singleLine=true)
                     SongRows(visibleSongs,favorites,fg,secondary,now?.uri,dark,{play(visibleSongs,it);showPlayer=true},{menuSong=it},{favorite(it)},{queue(it)}, Modifier.weight(1f))
@@ -677,14 +681,14 @@ private fun NegativeMusicApp() {
                         Box(Modifier.weight(1f).clip(RoundedCornerShape(4.dp))){
                             Column(Modifier.fillMaxWidth()){
                             Text(
-                                now!!.title,
+                                songTitle(now!!),
                                 modifier = Modifier.fillMaxWidth().basicMarquee(iterations = Int.MAX_VALUE),
                                 color = fg,
                                 fontWeight = FontWeight.SemiBold,
                                 maxLines = 1,
                                 softWrap = false
                             )
-                            Text(now!!.artist,color=secondary,fontSize=11.sp,maxLines=1,overflow=TextOverflow.Ellipsis)
+                            Text(songArtist(now!!),color=secondary,fontSize=11.sp,maxLines=1,overflow=TextOverflow.Ellipsis)
                             }
                         }
                     }
@@ -850,11 +854,11 @@ private fun NegativeMusicApp() {
                     }
                     OutlinedTextField(value=metadataTitle,onValueChange={metadataTitle=it},modifier=Modifier.fillMaxWidth(),singleLine=true,label={Text("Título")},colors=OutlinedTextFieldDefaults.colors(focusedTextColor=Color.White,unfocusedTextColor=Color.White,cursorColor=AccentBlue,focusedLabelColor=AccentBlue,unfocusedLabelColor=Gray))
                     OutlinedTextField(value=metadataArtist,onValueChange={metadataArtist=it},modifier=Modifier.fillMaxWidth(),singleLine=true,label={Text("Artista")},colors=OutlinedTextFieldDefaults.colors(focusedTextColor=Color.White,unfocusedTextColor=Color.White,cursorColor=AccentBlue,focusedLabelColor=AccentBlue,unfocusedLabelColor=Gray))
-                    val coverPicker=rememberLauncherForActivityResult(ActivityResultContracts.GetContent()){uri->if(uri!=null)metadataCover=copyPlaylistCover(ctx,uri) ?: uri.toString()}
+                    val coverPicker=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()){uri->if(uri!=null){val saved=copyPlaylistCover(ctx,uri);if(saved!=null)metadataCover=saved else toast="No se pudo guardar la imagen seleccionada."}}
                     if(metadataCover.isNotBlank()) {
                         PlaylistCoverImage(metadataCover,Modifier.fillMaxWidth().height(150.dp).clip(RoundedCornerShape(14.dp)),"Portada seleccionada",Color(0xFF201631),36.dp)
                     }
-                    OutlinedButton(onClick={coverPicker.launch("image/*")},modifier=Modifier.fillMaxWidth()){
+                    OutlinedButton(onClick={coverPicker.launch(arrayOf("image/*"))},modifier=Modifier.fillMaxWidth()){
                         Icon(Icons.Default.Image,null);Spacer(Modifier.width(8.dp));Text(if(metadataCover.isBlank()) "Elegir portada" else "Cambiar portada")
                     }
                     Row(horizontalArrangement=Arrangement.spacedBy(10.dp)) {
@@ -1159,7 +1163,7 @@ private fun PlaylistDialog(title:String,initialName:String,initialDesc:String,in
                 }
                 OutlinedTextField(value=name,onValueChange={name=it},modifier=Modifier.fillMaxWidth(),label={Text("Nombre de la playlist")},placeholder={Text("Por ejemplo: Favoritas de noche")},singleLine=true,shape=RoundedCornerShape(14.dp),leadingIcon={Icon(Icons.Default.Edit,null)},colors=OutlinedTextFieldDefaults.colors(focusedTextColor=Color.White,unfocusedTextColor=Color.White,focusedContainerColor=Color(0xFF101923),unfocusedContainerColor=Color(0xFF101923),focusedBorderColor=AccentBlue,unfocusedBorderColor=Gray.copy(alpha=.5f),focusedLabelColor=AccentBlue,unfocusedLabelColor=Gray,cursorColor=AccentBlue))
                 OutlinedTextField(value=desc,onValueChange={desc=it},modifier=Modifier.fillMaxWidth(),label={Text("Descripción (opcional)")},placeholder={Text("¿Qué canciones reúne?")},minLines=2,maxLines=3,shape=RoundedCornerShape(14.dp),colors=OutlinedTextFieldDefaults.colors(focusedTextColor=Color.White,unfocusedTextColor=Color.White,focusedContainerColor=Color(0xFF101923),unfocusedContainerColor=Color(0xFF101923),focusedBorderColor=AccentBlue,unfocusedBorderColor=Gray.copy(alpha=.5f),focusedLabelColor=AccentBlue,unfocusedLabelColor=Gray,cursorColor=AccentBlue))
-                OutlinedButton(onClick={picker.launch("image/*")},modifier=Modifier.fillMaxWidth(),shape=RoundedCornerShape(14.dp)) {
+                OutlinedButton(onClick={picker.launch(arrayOf("image/*"))},modifier=Modifier.fillMaxWidth(),shape=RoundedCornerShape(14.dp)) {
                     Icon(Icons.Default.Image,null);Spacer(Modifier.width(8.dp));Text(if(cover.isBlank()) "Elegir imagen de portada" else "Cambiar imagen de portada")
                 }
                 Row(horizontalArrangement=Arrangement.spacedBy(10.dp)) {
@@ -1229,7 +1233,7 @@ private fun SettingsPage(
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                             Box(Modifier.size(24.dp).clip(RoundedCornerShape(6.dp)).background(AccentBlue))
                             Box(Modifier.size(24.dp).clip(RoundedCornerShape(6.dp)).background(AccentCyan))
-                            Text("Azul y cian", color = sec)
+                            Text("Morado con detalles celestes y rosas", color = sec)
                         }
                     }
                 }
