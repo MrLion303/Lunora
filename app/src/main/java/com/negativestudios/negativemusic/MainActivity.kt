@@ -96,25 +96,28 @@ private val AccentSky = Color(0xFF8EDCFF)
 private val AccentPink = Color(0xFFFFA9D6)
 private val QuicksandFamily = FontFamily(Font(R.font.quicksand_regular))
 private val ZenMaruGothicFamily = FontFamily(Font(R.font.zen_maru_gothic_regular))
-private val QuicksandTypography = Typography().let { base ->
-    Typography(
-        displayLarge = base.displayLarge.copy(fontFamily = QuicksandFamily),
-        displayMedium = base.displayMedium.copy(fontFamily = QuicksandFamily),
-        displaySmall = base.displaySmall.copy(fontFamily = QuicksandFamily),
-        headlineLarge = base.headlineLarge.copy(fontFamily = QuicksandFamily),
-        headlineMedium = base.headlineMedium.copy(fontFamily = QuicksandFamily),
-        headlineSmall = base.headlineSmall.copy(fontFamily = QuicksandFamily),
-        titleLarge = base.titleLarge.copy(fontFamily = QuicksandFamily),
-        titleMedium = base.titleMedium.copy(fontFamily = QuicksandFamily),
-        titleSmall = base.titleSmall.copy(fontFamily = QuicksandFamily),
-        bodyLarge = base.bodyLarge.copy(fontFamily = QuicksandFamily),
-        bodyMedium = base.bodyMedium.copy(fontFamily = QuicksandFamily),
-        bodySmall = base.bodySmall.copy(fontFamily = QuicksandFamily),
-        labelLarge = base.labelLarge.copy(fontFamily = QuicksandFamily),
-        labelMedium = base.labelMedium.copy(fontFamily = QuicksandFamily),
-        labelSmall = base.labelSmall.copy(fontFamily = QuicksandFamily)
+private fun typographyWithFontFamily(fontFamily: FontFamily): Typography {
+    val base = Typography()
+    return Typography(
+        displayLarge = base.displayLarge.copy(fontFamily = fontFamily),
+        displayMedium = base.displayMedium.copy(fontFamily = fontFamily),
+        displaySmall = base.displaySmall.copy(fontFamily = fontFamily),
+        headlineLarge = base.headlineLarge.copy(fontFamily = fontFamily),
+        headlineMedium = base.headlineMedium.copy(fontFamily = fontFamily),
+        headlineSmall = base.headlineSmall.copy(fontFamily = fontFamily),
+        titleLarge = base.titleLarge.copy(fontFamily = fontFamily),
+        titleMedium = base.titleMedium.copy(fontFamily = fontFamily),
+        titleSmall = base.titleSmall.copy(fontFamily = fontFamily),
+        bodyLarge = base.bodyLarge.copy(fontFamily = fontFamily),
+        bodyMedium = base.bodyMedium.copy(fontFamily = fontFamily),
+        bodySmall = base.bodySmall.copy(fontFamily = fontFamily),
+        labelLarge = base.labelLarge.copy(fontFamily = fontFamily),
+        labelMedium = base.labelMedium.copy(fontFamily = fontFamily),
+        labelSmall = base.labelSmall.copy(fontFamily = fontFamily)
     )
 }
+private val QuicksandTypography = typographyWithFontFamily(QuicksandFamily)
+private val ZenMaruGothicTypography = typographyWithFontFamily(ZenMaruGothicFamily)
 private val Dark = Color(0xFF070B10)
 private val Panel = Color(0xFF0B1118)
 private val Gray = Color(0xFFB3C0CE)
@@ -497,7 +500,7 @@ private fun NegativeMusicApp() {
             else -> {page="Inicio";search=""}
         }
     }
-    MaterialTheme(colorScheme = if (dark) darkColorScheme(primary=AccentBlue, secondary=AccentSky, background=bg, surface=surface) else lightColorScheme(primary=AccentBlue, secondary=AccentSky, secondaryContainer=Color(0xFFDDF5FF), onSecondaryContainer=Color(0xFF15384A), surfaceVariant=Color(0xFFF0EAFF), background=bg, surface=surface), typography = QuicksandTypography) {
+    MaterialTheme(colorScheme = if (dark) darkColorScheme(primary=AccentBlue, secondary=AccentSky, background=bg, surface=surface) else lightColorScheme(primary=AccentBlue, secondary=AccentSky, secondaryContainer=Color(0xFFDDF5FF), onSecondaryContainer=Color(0xFF15384A), surfaceVariant=Color(0xFFF0EAFF), background=bg, surface=surface), typography = if (Locale.getDefault().language == "ja") ZenMaruGothicTypography else QuicksandTypography) {
         Column(Modifier.fillMaxSize().background(bg)) {
             if (!page.startsWith("playlist:")) Row(Modifier.fillMaxWidth().padding(horizontal=18.dp, vertical=12.dp), verticalAlignment=Alignment.CenterVertically) {
                 Image(
