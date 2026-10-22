@@ -15,15 +15,18 @@ import java.nio.ByteBuffer
 class MonoAudioProcessor(initiallyEnabled: Boolean) : BaseAudioProcessor() {
     @Volatile
     private var monoEnabled: Boolean = initiallyEnabled
+    private var pcmEncoding: Int = C.ENCODING_PCM_16BIT
 
     fun setMonoEnabled(enabled: Boolean) {
         monoEnabled = enabled
     }
 
     override fun onConfigure(inputAudioFormat: AudioProcessor.AudioFormat): AudioProcessor.AudioFormat {
+        pcmEncoding = inputAudioFormat.encoding
         return if (
-            inputAudioFormat.encoding == C.ENCODING_PCM_16BIT &&
-            inputAudioFormat.channelCount == 2
+            inputAudioFormat.channelCount == 2 &&
+            (inputAudioFormat.encoding == C.ENCODING_PCM_16BIT ||
+                inputAudioFormat.encoding == C.ENCODING_PCM_FLOAT)
         ) {
             inputAudioFormat
         } else {
@@ -39,12 +42,26 @@ class MonoAudioProcessor(initiallyEnabled: Boolean) : BaseAudioProcessor() {
         if (!monoEnabled) {
             outputBuffer.put(inputBuffer)
         } else {
-            while (inputBuffer.remaining() >= 4) {
-                val left = inputBuffer.short.toInt()
-                val right = inputBuffer.short.toInt()
-                val mixed = ((left + right) / 2).toShort()
-                outputBuffer.putShort(mixed)
-                outputBuffer.putShort(mixed)
+            when (pcmEncoding) {
+                C.ENCODING_PCM_16BIT -> {
+                    while (inputBuffer.remaining() >= 4) {
+                        val left = inputBuffer.short.toInt()
+                        val right = inputBuffer.short.toInt()
+                        val mixed = ((left + right) / 2).toShort()
+                        outputBuffer.putShort(mixed)
+                        outputBuffer.putShort(mixed)
+                    }
+                }
+                C.ENCODING_PCM_FLOAT -> {
+                    while (inputBuffer.remaining() >= 8) {
+                        val left = inputBuffer.float
+                        val right = inputBuffer.float
+                        val mixed = ((left + right) / 2f).coerceIn(-1f, 1f)
+                        outputBuffer.putFloat(mixed)
+                        outputBuffer.putFloat(mixed)
+                    }
+                }
+                else -> outputBuffer.put(inputBuffer)
             }
         }
         outputBuffer.flip()
