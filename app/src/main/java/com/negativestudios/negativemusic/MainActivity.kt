@@ -1317,8 +1317,9 @@ private fun copyPlaylistCover(context: Context, uri: Uri): String? {
     ) {
         Image(
             painter = painterResource(R.drawable.youtube_logo),
-            contentDescription = "YouTube",
-            modifier = Modifier.size(width = 24.dp, height = 18.dp)
+            contentDescription = "Buscar en YouTube",
+            modifier = Modifier.size(width = 24.dp, height = 18.dp),
+            colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(AccentPurple)
         )
         Spacer(Modifier.width(18.dp))
         Text(label, color = fg, fontSize = 15.sp)
