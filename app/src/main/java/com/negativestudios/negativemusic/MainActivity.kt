@@ -287,7 +287,6 @@ private fun NegativeMusicApp() {
     var playerDrag by remember { mutableFloatStateOf(0f) }
     var playerDismissing by remember { mutableStateOf(false) }
     var playlistMenuOpen by remember { mutableStateOf(false) }
-    var reorderPlaylist by remember { mutableStateOf(false) }
     var lyricsEditing by remember { mutableStateOf(false) }
     val toastOffset = remember { Animatable(0f) }
     var toastDragging by remember { mutableStateOf(false) }
@@ -717,7 +716,6 @@ private fun NegativeMusicApp() {
                                  Box {
                                      ThemedIconButton(dark,Icons.Default.MoreVert,"Opciones de playlist",if(playlistMenuOpen) AccentPurple else if(dark)AccentPurple else fg){playlistMenuOpen=true}
                                      DropdownMenu(expanded=playlistMenuOpen,onDismissRequest={playlistMenuOpen=false}){
-                                         DropdownMenuItem(text={Text(if(reorderPlaylist) "Terminar de ordenar" else "Ordenar canciones")},leadingIcon={Icon(Icons.Default.SwapVert,null,tint=AccentPurple)},onClick={playlistMenuOpen=false;reorderPlaylist=!reorderPlaylist})
                                          DropdownMenuItem(text={Text("Editar playlist")},leadingIcon={Icon(Icons.Default.Edit,null,tint=AccentPurple)},onClick={playlistMenuOpen=false;editTarget=selectedPlaylist})
                                          DropdownMenuItem(text={Text("Eliminar playlist")},leadingIcon={Icon(Icons.Default.Delete,null,tint=AccentPurple)},onClick={playlistMenuOpen=false;playlistDeleteTarget=selectedPlaylist})
                                      }
@@ -736,48 +734,49 @@ private fun NegativeMusicApp() {
                              Row(
                                  Modifier
                                          .fillMaxWidth()
-                                     .then(
-                                         if (reorderPlaylist) {
-                                             Modifier.pointerInput(s.uri, reorderPlaylist) {
-                                                 var accumulated = 0f
-                                                 detectVerticalDragGestures(
-                                                     onVerticalDrag = { change, amount ->
-                                                         change.consume()
-                                                         accumulated += amount
-                                                         val threshold = 56.dp.toPx()
-                                                         if (kotlin.math.abs(accumulated) >= threshold) {
-                                                             val direction = if (accumulated > 0f) 1 else -1
-                                                             val pl = playlists.firstOrNull { it.id == selectedPlaylist?.id }
-                                                             val oldIndex = pl?.songs?.indexOf(s.uri) ?: -1
-                                                             val newIndex = oldIndex + direction
-                                                             if (pl != null && oldIndex >= 0 && newIndex in pl.songs.indices) {
-                                                                 val moved = pl.songs.toMutableList()
-                                                                 val uri = moved.removeAt(oldIndex)
-                                                                 moved.add(newIndex, uri)
-                                                                 saveLists(playlists.map { if (it.id == pl.id) it.copy(songs = moved) else it })
-                                                                 accumulated -= direction * threshold
-                                                             } else {
-                                                                 accumulated = 0f
-                                                             }
-                                                         }
-                                                     }
-                                                 )
-                                             }
-                                         } else Modifier
-                                     )
                                      .combinedClickable(
-                                         enabled = !reorderPlaylist,
                                          onClick = { play(visibleSongs,s); showPlayer=true },
                                          onLongClick = { menuSong=s }
                                      )
                                      .padding(horizontal=16.dp,vertical=7.dp),
                                  verticalAlignment=Alignment.CenterVertically
                              ){
-                                 if (reorderPlaylist) Icon(Icons.Default.DragHandle,"Mover canción",tint=AccentPurple,modifier=Modifier.size(28.dp))
+                                 Box(
+                                     Modifier.size(36.dp).pointerInput(s.uri, selectedPlaylist?.id) {
+                                         var accumulated = 0f
+                                         detectVerticalDragGestures(
+                                             onVerticalDrag = { change, amount ->
+                                                 change.consume()
+                                                 accumulated += amount
+                                                 val threshold = 56.dp.toPx()
+                                                 if (kotlin.math.abs(accumulated) >= threshold) {
+                                                     val direction = if (accumulated > 0f) 1 else -1
+                                                     val pl = playlists.firstOrNull { it.id == selectedPlaylist?.id }
+                                                     val oldIndex = pl?.songs?.indexOf(s.uri) ?: -1
+                                                     val newIndex = oldIndex + direction
+                                                     if (pl != null && oldIndex >= 0 && newIndex in pl.songs.indices) {
+                                                         val moved = pl.songs.toMutableList()
+                                                         val uri = moved.removeAt(oldIndex)
+                                                         moved.add(newIndex, uri)
+                                                         saveLists(playlists.map { if (it.id == pl.id) it.copy(songs = moved) else it })
+                                                         accumulated -= direction * threshold
+                                                     } else {
+                                                         accumulated = 0f
+                                                     }
+                                                 }
+                                             },
+                                             onDragEnd = { accumulated = 0f },
+                                             onDragCancel = { accumulated = 0f }
+                                         )
+                                     },
+                                     contentAlignment = Alignment.Center
+                                 ) {
+                                     Icon(Icons.Default.DragHandle,"Arrastrar para cambiar de posición",tint=secondary,modifier=Modifier.size(25.dp))
+                                 }
                                  Box(Modifier.size(50.dp).clip(RoundedCornerShape(8.dp)).background((if (dark) LunoraColors.surfaceAccentDark else LunoraColors.surfaceAccentLight)),contentAlignment=Alignment.Center){Icon(Icons.Default.Album,null,tint=AccentPurple,modifier=Modifier.size(28.dp))}
                                  Spacer(Modifier.width(11.dp));Column(Modifier.weight(1f)){Text(s.title,color=if(s.uri==now?.uri)AccentPurple else fg,fontWeight=FontWeight.SemiBold,maxLines=1,overflow=TextOverflow.Ellipsis);Text("${s.artist} · ${time(s.duration)}",color=secondary,fontSize=12.sp,maxLines=1,overflow=TextOverflow.Ellipsis)}
                                  if(s.uri in favorites)Icon(Icons.Default.Favorite,null,tint=AccentPurple,modifier=Modifier.size(16.dp))
-                                 if (!reorderPlaylist) IconButton(onClick={menuSong=s}){Icon(Icons.Default.MoreVert,"Más opciones",tint=secondary)}
+                                 IconButton(onClick={menuSong=s}){Icon(Icons.Default.MoreVert,"Más opciones",tint=secondary)}
                              }
                          }
                      }
