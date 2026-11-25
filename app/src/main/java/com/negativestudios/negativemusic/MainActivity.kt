@@ -19,6 +19,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.LinearEasing
@@ -847,7 +850,7 @@ private fun NegativeMusicApp() {
                         }
                     }
                     IconButton(onClick={if(controller?.isPlaying==true)controller?.pause() else controller?.play()}){Icon(if(playing)Icons.Default.Pause else Icons.Default.PlayArrow,null,tint=AccentPurple)}
-                    IconButton(onClick={outputNames=try { val am=ctx.getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager; am.getDevices(android.media.AudioManager.GET_DEVICES_OUTPUTS).map{it.productName.toString()} } catch (_:Exception){emptyList()};outputDialog=true}){Icon(Icons.Default.Speaker,null,tint=AccentPurple)}
+                    IconButton(onClick={outputNames=try { val am=ctx.getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager; am.getDevices(android.media.AudioManager.GET_DEVICES_OUTPUTS).map{it.productName.toString().trim()}.filter{it.isNotBlank()}.distinctBy{it.lowercase(Locale.ROOT)} } catch (_:Exception){emptyList()};outputDialog=true}){Icon(Icons.Default.Speaker,null,tint=AccentPurple)}
                 }
                 Slider(value=if(duration>0)(position.toFloat()/duration).coerceIn(0f,1f) else 0f,onValueChange={controller?.seekTo((it*duration).toLong())},modifier=Modifier.fillMaxWidth().height(14.dp),thumb={Box(Modifier.width(4.dp).height(16.dp).background(AccentPurple,RoundedCornerShape(2.dp)))},colors=SliderDefaults.colors(thumbColor=AccentPurple,activeTrackColor=AccentPurple))
                 Row(Modifier.fillMaxWidth().padding(horizontal=16.dp),horizontalArrangement=Arrangement.SpaceBetween) { Text(time(position),color=secondary,fontSize=10.sp); Text(time(duration),color=secondary,fontSize=10.sp) }
@@ -1063,6 +1066,7 @@ private fun NegativeMusicApp() {
             }
         }
         androidx.compose.ui.window.Dialog(onDismissRequest={showPlayer=false;playerDrag=0f},properties=androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth=false)) {
+             AnimatedVisibility(visible=true,enter=slideInVertically(initialOffsetY={it},animationSpec=tween(320))+fadeIn(animationSpec=tween(260))) {
              Surface(Modifier.fillMaxSize().nestedScroll(playerNestedConnection).graphicsLayer { translationY = playerDrag },color=bg) {
                  Column(Modifier.fillMaxSize().verticalScroll(playerScroll).padding(horizontal=24.dp,vertical=18.dp),horizontalAlignment=Alignment.CenterHorizontally) {
                     Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
@@ -1109,6 +1113,7 @@ private fun NegativeMusicApp() {
                     Spacer(Modifier.height(32.dp))
                 }
             }
+             }
             if(showQueue) androidx.compose.material3.ModalBottomSheet(onDismissRequest={showQueue=false},containerColor=surface,contentColor=fg) {
                 Row(Modifier.fillMaxWidth().padding(horizontal=20.dp,vertical=10.dp),verticalAlignment=Alignment.CenterVertically){
                     Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(2.dp)){
