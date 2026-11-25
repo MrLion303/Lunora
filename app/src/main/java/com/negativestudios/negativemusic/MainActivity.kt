@@ -1365,19 +1365,18 @@ private fun SwipeQueueContainer(song: Song, onQueue: () -> Unit, content: @Compo
                     Modifier.fillMaxWidth().clip(RoundedCornerShape(15.dp))
                         .background(if(isCurrent) AccentPurple.copy(alpha=if(dark).15f else .09f) else Color.Transparent)
                         .combinedClickable(onClick={play(song)},onLongClick={menu(song)})
-                        .padding(horizontal=10.dp,vertical=8.dp),
+                        .padding(horizontal=10.dp,vertical=7.dp),
                     verticalAlignment=Alignment.CenterVertically
                 ){
                     Box {
-                        if (cover(song).isNotBlank()) PlaylistCoverImage(cover(song),Modifier.size(52.dp).clip(RoundedCornerShape(12.dp)),"Carátula de ${song.title}",(if (dark) LunoraColors.surfaceAccentDark else LunoraColors.surfaceAccentLight),28.dp)
-                        else Box(Modifier.size(52.dp).clip(RoundedCornerShape(12.dp)).background((if (dark) LunoraColors.surfaceAccentDark else LunoraColors.surfaceAccentLight)),contentAlignment=Alignment.Center){Icon(Icons.Default.Album,null,tint=AccentPurple,modifier=Modifier.size(28.dp))}
+                        if (cover(song).isNotBlank()) PlaylistCoverImage(cover(song),Modifier.size(50.dp).clip(RoundedCornerShape(12.dp)),"Carátula de ${song.title}",(if (dark) LunoraColors.surfaceAccentDark else LunoraColors.surfaceAccentLight),28.dp)
+                        else Box(Modifier.size(50.dp).clip(RoundedCornerShape(12.dp)).background((if (dark) LunoraColors.surfaceAccentDark else LunoraColors.surfaceAccentLight)),contentAlignment=Alignment.Center){Icon(Icons.Default.Album,null,tint=AccentPurple,modifier=Modifier.size(28.dp))}
                         if(isCurrent) Box(Modifier.align(Alignment.BottomEnd).padding(3.dp).size(18.dp).clip(CircleShape).background(AccentPurple),contentAlignment=Alignment.Center){Icon(Icons.Default.VolumeUp,null,tint=Color.White,modifier=Modifier.size(12.dp))}
                     }
                     Spacer(Modifier.width(12.dp))
-                    Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(3.dp)){
+                    Column(Modifier.weight(1f)){
                         Text(song.title,color=if(isCurrent)AccentPurple else fg,fontWeight=FontWeight.Bold,maxLines=1,overflow=TextOverflow.Ellipsis)
-                        Text(song.artist,color=secondary,fontSize=12.sp,maxLines=1,overflow=TextOverflow.Ellipsis)
-                        Text(time(song.duration),color=secondary.copy(alpha=.82f),fontSize=10.sp)
+                        Text("${song.artist} · ${time(song.duration)}",color=secondary,fontSize=12.sp,maxLines=1,overflow=TextOverflow.Ellipsis)
                     }
                     if(song.uri in favorites) Icon(Icons.Default.Favorite,null,tint=AccentPink,modifier=Modifier.size(16.dp))
                     IconButton(onClick={menu(song)}){Icon(Icons.Default.MoreVert,"Más opciones",tint=secondary)}
