@@ -1097,9 +1097,9 @@ private fun NegativeMusicApp() {
                     }
                     Spacer(Modifier.height(4.dp))
                     Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceEvenly,verticalAlignment=Alignment.CenterVertically){
-                        Box(Modifier.weight(1f),contentAlignment=Alignment.Center){IconButton(onClick={showQueue=true}){Icon(Icons.Default.QueueMusic,null,tint=AccentPurple,modifier=Modifier.size(25.dp))}}
+                        Box(Modifier.weight(1f),contentAlignment=Alignment.Center){IconButton(onClick={showQueue=true}){Icon(Icons.Default.QueueMusic,null,tint=if(showQueue)AccentPurple else secondary,modifier=Modifier.size(25.dp))}}
                         Spacer(Modifier.weight(1f)); Spacer(Modifier.weight(1f)); Spacer(Modifier.weight(1f))
-                        Box(Modifier.weight(1f),contentAlignment=Alignment.Center){IconButton(onClick={outputNames=try{val am=ctx.getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager;am.getDevices(android.media.AudioManager.GET_DEVICES_OUTPUTS).map{it.productName.toString()}}catch(_:Exception){emptyList()};outputDialog=true}){Icon(Icons.Default.Speaker,null,tint=AccentPurple,modifier=Modifier.size(25.dp))}}
+                        Box(Modifier.weight(1f),contentAlignment=Alignment.Center){IconButton(onClick={outputNames=try{val am=ctx.getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager;am.getDevices(android.media.AudioManager.GET_DEVICES_OUTPUTS).map{it.productName.toString()}.filter{it.isNotBlank()}.distinct()}catch(_:Exception){emptyList()};outputDialog=true}){Icon(Icons.Default.Speaker,null,tint=if(outputDialog)AccentPurple else secondary,modifier=Modifier.size(25.dp))}}
                     }
                     Spacer(Modifier.height(20.dp))
                     Text("Letra",color=fg,fontSize=22.sp,fontWeight=FontWeight.Bold,modifier=Modifier.fillMaxWidth())
@@ -1137,7 +1137,50 @@ private fun NegativeMusicApp() {
         }
     }
     if (showTimer) AlertDialog(onDismissRequest={showTimer=false},title={Text("Apagado automático")},text={Column{Text("Detener después de $timerMins minutos");Slider(value=timerMins.toFloat(),onValueChange={timerMins=it.toInt()},valueRange=5f..180f,steps=34)}},confirmButton={TextButton(onClick={deadline=System.currentTimeMillis()+timerMins*60000L;showTimer=false;toast="Temporizador activado."}){Text("Activar")}},dismissButton={TextButton(onClick={deadline=0;showTimer=false}){Text("Cancelar")}})
-    if (outputDialog) androidx.compose.material3.ModalBottomSheet(onDismissRequest={outputDialog=false},containerColor=surface,contentColor=fg) { Text("Salidas de audio",Modifier.padding(horizontal=22.dp,vertical=12.dp),fontSize=22.sp,fontWeight=FontWeight.Bold,color=fg); if(outputNames.isEmpty()) Text("No se detectaron salidas disponibles.",Modifier.padding(22.dp),color=secondary) else outputNames.distinct().forEach{Text("• $it",Modifier.fillMaxWidth().padding(horizontal=22.dp,vertical=8.dp),color=fg)}; Text("Para cambiar de salida, utiliza también el selector de audio de Android.",Modifier.padding(22.dp),fontSize=12.sp,color=secondary); Spacer(Modifier.height(18.dp)) }
+    if (outputDialog) androidx.compose.material3.ModalBottomSheet(onDismissRequest={outputDialog=false},containerColor=surface,contentColor=fg) {
+        Column(Modifier.fillMaxWidth().padding(horizontal=20.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
+            Row(verticalAlignment=Alignment.CenterVertically) {
+                Box(Modifier.size(46.dp).clip(RoundedCornerShape(15.dp)).background(AccentPurple.copy(alpha=.14f)),contentAlignment=Alignment.Center) {
+                    Icon(Icons.Default.Speaker,color=AccentPurple,modifier=Modifier.size(25.dp))
+                }
+                Spacer(Modifier.width(13.dp))
+                Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(2.dp)) {
+                    Text("Dispositivos de audio",fontSize=21.sp,fontWeight=FontWeight.ExtraBold,color=fg)
+                    Text("${outputNames.size} salidas detectadas",fontSize=12.sp,color=secondary)
+                }
+            }
+            Text("Salidas disponibles en el dispositivo",fontSize=13.sp,fontWeight=FontWeight.SemiBold,color=secondary)
+            if(outputNames.isEmpty()) {
+                Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(if(dark)Color(0xFF171426) else Color(0xFFF2EFFA)).padding(20.dp),contentAlignment=Alignment.Center) {
+                    Column(horizontalAlignment=Alignment.CenterVertically,verticalArrangement=Arrangement.spacedBy(8.dp)) {
+                        Icon(Icons.Default.HeadsetOff,null,tint=secondary,modifier=Modifier.size(30.dp))
+                        Text("No se detectaron salidas disponibles",color=fg,fontWeight=FontWeight.SemiBold)
+                        Text("Conecta unos auriculares o un dispositivo de audio y vuelve a abrir esta sección.",color=secondary,fontSize=12.sp,textAlign=TextAlign.Center)
+                    }
+                }
+            } else {
+                outputNames.forEach { device ->
+                    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(if(dark)Color(0xFF171426) else Color(0xFFF2EFFA)).padding(horizontal=15.dp,vertical=13.dp),verticalAlignment=Alignment.CenterVertically) {
+                        Box(Modifier.size(42.dp).clip(RoundedCornerShape(13.dp)).background(AccentPurple.copy(alpha=.13f)),contentAlignment=Alignment.Center) {
+                            Icon(if(device.contains("bluetooth",true)||device.contains("buds",true)||device.contains("headset",true)) Icons.Default.Headphones else Icons.Default.Speaker,tint=AccentPurple,modifier=Modifier.size(22.dp))
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(2.dp)) {
+                            Text(device,color=fg,fontWeight=FontWeight.SemiBold,maxLines=2,overflow=TextOverflow.Ellipsis)
+                            Text("Salida detectada por Android",color=secondary,fontSize=11.sp)
+                        }
+                        Icon(Icons.Default.CheckCircleOutline,null,tint=secondary,modifier=Modifier.size(20.dp))
+                    }
+                }
+            }
+            Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(AccentPurple.copy(alpha=.09f)).padding(13.dp),verticalAlignment=Alignment.Top) {
+                Icon(Icons.Default.Info,null,tint=AccentPurple,modifier=Modifier.size(18.dp))
+                Spacer(Modifier.width(9.dp))
+                Text("Para cambiar la salida activa, usa el selector de audio de Android. Android administra la conexión y permite una salida activa a la vez desde este tipo de reproductor.",color=secondary,fontSize=12.sp,lineHeight=17.sp)
+            }
+            Spacer(Modifier.height(12.dp))
+        }
+    }
     if (clearDataDialog) AlertDialog(
         onDismissRequest = { if (!clearingData) clearDataDialog = false },
         title = { Text("Limpiar almacenamiento") },
