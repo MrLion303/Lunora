@@ -810,7 +810,7 @@ private fun NegativeMusicApp() {
                     if(playlists.isEmpty()) {
                         item { EmptyCollectionHint("Tus playlists aparecerán aquí","Crea una playlist para organizar tus canciones",Icons.Default.QueueMusic,secondary) }
                     } else {
-                        items(playlists,key={it.id}) { p -> HomeRow(p.name,"${p.songs.size} canciones",Icons.Default.QueueMusic,fg,secondary,p.cover){playlistOrigin=page;page="playlist:"+p.id} }
+                        items(playlists,key={it.id}) { p -> HomeRow(p.name,"${p.songs.size} canciones",Icons.Default.QueueMusic,fg,secondary,p.cover,dark){playlistOrigin=page;page="playlist:"+p.id} }
                     }
                     item { SectionHeading("Tu biblioteca","Todo lo que necesitas para escuchar",fg,secondary) }
                     item { HomeRow("Buscar canciones","${songs.size} canciones en el dispositivo",Icons.Default.LibraryMusic,fg,secondary,dark=dark){page="Buscar"} }
