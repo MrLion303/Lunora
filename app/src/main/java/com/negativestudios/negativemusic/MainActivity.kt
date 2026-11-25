@@ -1276,68 +1276,111 @@ private fun SwipeQueueContainer(song: Song, onQueue: () -> Unit, content: @Compo
 
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable private fun SongRows(songs:List<Song>,favorites:Set<String>,fg:Color,secondary:Color,current:String?,dark:Boolean,cover:(Song)->String,play:(Song)->Unit,menu:(Song)->Unit,favorite:(Song)->Unit,enqueue:(Song)->Unit,modifier: Modifier = Modifier.fillMaxWidth()) {
-    if(songs.isEmpty()) Box(Modifier.fillMaxWidth().padding(28.dp),contentAlignment=Alignment.Center){Text("Todavía no hay canciones aquí.",color=secondary)}
-    else LazyColumn(modifier,contentPadding=PaddingValues(bottom=12.dp)){
-        items(songs,key={it.uri}){s->
-            SwipeQueueContainer(s,{enqueue(s)}) {
-                Row(Modifier.fillMaxWidth().combinedClickable(onClick={play(s)},onLongClick={menu(s)}).padding(horizontal=16.dp,vertical=7.dp),verticalAlignment=Alignment.CenterVertically){
-                    if (cover(s).isNotBlank()) PlaylistCoverImage(cover(s),Modifier.size(50.dp).clip(RoundedCornerShape(8.dp)),"Carátula de ${s.title}",MaterialTheme.colorScheme.surfaceVariant,28.dp) else Box(Modifier.size(50.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceVariant),contentAlignment=Alignment.Center){Icon(Icons.Default.Album,null,tint=AccentPurple,modifier=Modifier.size(28.dp))}
-                    Spacer(Modifier.width(11.dp));Column(Modifier.weight(1f)){Text(s.title,color=if(s.uri==current)AccentPurple else fg,fontWeight=FontWeight.SemiBold,maxLines=1,overflow=TextOverflow.Ellipsis);Text("${s.artist} · ${time(s.duration)}",color=secondary,fontSize=12.sp,maxLines=1,overflow=TextOverflow.Ellipsis)}
-                    if(s.uri in favorites)Icon(Icons.Default.Favorite,null,tint=AccentPurple,modifier=Modifier.size(16.dp))
-                    IconButton(onClick={menu(s)}){Icon(Icons.Default.MoreVert,"Más opciones",tint=secondary)}
+    if(songs.isEmpty()) {
+        Box(Modifier.fillMaxWidth().padding(horizontal=28.dp,vertical=52.dp),contentAlignment=Alignment.Center) {
+            EmptyCollectionHint("No hay canciones para mostrar","Cuando haya música disponible, aparecerá aquí",Icons.Default.MusicOff,secondary)
+        }
+    } else LazyColumn(modifier,contentPadding=PaddingValues(horizontal=10.dp,vertical=6.dp),verticalArrangement=Arrangement.spacedBy(3.dp)){
+        items(songs,key={it.uri}){song->
+            val isCurrent = song.uri == current
+            SwipeQueueContainer(song,{enqueue(song)}) {
+                Row(
+                    Modifier.fillMaxWidth().clip(RoundedCornerShape(15.dp))
+                        .background(if(isCurrent) AccentPurple.copy(alpha=if(dark).15f else .09f) else Color.Transparent)
+                        .combinedClickable(onClick={play(song)},onLongClick={menu(song)})
+                        .padding(horizontal=10.dp,vertical=8.dp),
+                    verticalAlignment=Alignment.CenterVertically
+                ){
+                    Box {
+                        if (cover(song).isNotBlank()) PlaylistCoverImage(cover(song),Modifier.size(52.dp).clip(RoundedCornerShape(12.dp)),"Carátula de ${song.title}",MaterialTheme.colorScheme.surfaceVariant,28.dp)
+                        else Box(Modifier.size(52.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surfaceVariant),contentAlignment=Alignment.Center){Icon(Icons.Default.Album,null,tint=AccentPurple,modifier=Modifier.size(28.dp))}
+                        if(isCurrent) Box(Modifier.align(Alignment.BottomEnd).padding(3.dp).size(18.dp).clip(CircleShape).background(AccentPurple),contentAlignment=Alignment.Center){Icon(Icons.Default.VolumeUp,null,tint=Color.White,modifier=Modifier.size(12.dp))}
+                    }
+                    Spacer(Modifier.width(12.dp))
+                    Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(3.dp)){
+                        Text(song.title,color=if(isCurrent)AccentPurple else fg,fontWeight=FontWeight.Bold,maxLines=1,overflow=TextOverflow.Ellipsis)
+                        Text(song.artist,color=secondary,fontSize=12.sp,maxLines=1,overflow=TextOverflow.Ellipsis)
+                        Text(time(song.duration),color=secondary.copy(alpha=.82f),fontSize=10.sp)
+                    }
+                    if(song.uri in favorites) Icon(Icons.Default.Favorite,null,tint=AccentPink,modifier=Modifier.size(16.dp))
+                    IconButton(onClick={menu(song)}){Icon(Icons.Default.MoreVert,"Más opciones",tint=secondary)}
                 }
             }
         }
     }
 }
 
+@Composable private fun SectionHeading(title:String,subtitle:String,fg:Color,secondary:Color) {
+    Row(Modifier.fillMaxWidth().padding(start=20.dp,end=20.dp,top=22.dp,bottom=8.dp),verticalAlignment=Alignment.Bottom) {
+        Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(2.dp)) {
+            Text(title,color=fg,fontSize=19.sp,fontWeight=FontWeight.ExtraBold)
+            Text(subtitle,color=secondary,fontSize=11.sp)
+        }
+    }
+}
+
+@Composable private fun EmptyCollectionHint(title:String,subtitle:String,icon:androidx.compose.ui.graphics.vector.ImageVector,secondary:Color) {
+    Column(Modifier.fillMaxWidth().padding(14.dp),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(8.dp)) {
+        Box(Modifier.size(58.dp).clip(RoundedCornerShape(19.dp)).background(AccentPurple.copy(alpha=.12f)),contentAlignment=Alignment.Center) {
+            Icon(icon,null,tint=AccentLavender,modifier=Modifier.size(29.dp))
+        }
+        Text(title,color=MaterialTheme.colorScheme.onSurface,fontWeight=FontWeight.Bold)
+        Text(subtitle,color=secondary,fontSize=12.sp,textAlign=androidx.compose.ui.text.style.TextAlign.Center)
+    }
+}
+
 @Composable private fun HomeTile(title:String,sub:String,icon:androidx.compose.ui.graphics.vector.ImageVector,modifier:Modifier,accent:Color,dark:Boolean,fg:Color,secondary:Color,onClick:()->Unit){
-    val tileSurface = if (dark) Color(0xFF151322) else Color(0xFFF0ECF8)
+    val tileSurface = if (dark) Color(0xFF171426) else Color(0xFFF2EFFA)
     Card(
-        modifier.clickable(onClick=onClick),
+        modifier=modifier.heightIn(min=142.dp).clickable(onClick=onClick),
         colors=CardDefaults.cardColors(containerColor=tileSurface, contentColor=fg),
-        shape=RoundedCornerShape(16.dp)
+        shape=RoundedCornerShape(22.dp)
     ) {
-        Column(Modifier.padding(15.dp)) {
-            Box(Modifier.size(42.dp).clip(RoundedCornerShape(12.dp)).background(accent.copy(alpha=.14f)),contentAlignment=Alignment.Center) {
-                Icon(icon,null,tint=accent,modifier=Modifier.size(28.dp))
+        Column(Modifier.fillMaxWidth().padding(16.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
+            Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
+                Box(Modifier.size(44.dp).clip(RoundedCornerShape(15.dp)).background(accent.copy(alpha=.16f)),contentAlignment=Alignment.Center) {
+                    Icon(icon,null,tint=accent,modifier=Modifier.size(25.dp))
+                }
+                Spacer(Modifier.weight(1f))
+                Icon(Icons.Default.ArrowOutward,null,tint=secondary.copy(alpha=.8f),modifier=Modifier.size(17.dp))
             }
-            Spacer(Modifier.height(14.dp))
-            Text(title,color=fg,fontWeight=FontWeight.Bold)
-            Text(sub,color=secondary,fontSize=11.sp)
+            Spacer(Modifier.height(2.dp))
+            Text(title,color=fg,fontWeight=FontWeight.ExtraBold,fontSize=15.sp,maxLines=2,minLines=1)
+            Text(sub,color=secondary,fontSize=11.sp,maxLines=2,minLines=1)
         }
     }
 }
 @Composable private fun PlaylistGalleryCard(playlist: Playlist, modifier: Modifier, fg: Color, secondary: Color, onClick: () -> Unit) {
-    Column(modifier.clickable(onClick = onClick).padding(bottom = 8.dp)) {
+    Column(modifier.clip(RoundedCornerShape(18.dp)).clickable(onClick = onClick).background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha=.48f)).padding(9.dp)) {
         if (playlist.cover.isNotBlank()) {
-            PlaylistCoverImage(
-                playlist.cover,
-                Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(14.dp)),
-                "Portada de ${playlist.name}",
-                MaterialTheme.colorScheme.surfaceVariant,
-                42.dp
-            )
+            PlaylistCoverImage(playlist.cover,Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(13.dp)),"Portada de ${playlist.name}",MaterialTheme.colorScheme.surfaceVariant,42.dp)
         } else {
-            Box(
-                Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(14.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Default.QueueMusic, contentDescription = null, tint = AccentPurple, modifier = Modifier.size(42.dp))
+            Box(Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(13.dp)).background(Brush.linearGradient(listOf(AccentPurple.copy(alpha=.24f),MaterialTheme.colorScheme.surfaceVariant))),contentAlignment=Alignment.Center) {
+                Icon(Icons.Default.QueueMusic,contentDescription=null,tint=AccentLavender,modifier=Modifier.size(42.dp))
             }
         }
-        Spacer(Modifier.height(8.dp))
-        Text(playlist.name, color = fg, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        Text("${playlist.songs.size} canciones", color = secondary, fontSize = 12.sp, maxLines = 1)
+        Spacer(Modifier.height(10.dp))
+        Text(playlist.name,color=fg,fontWeight=FontWeight.Bold,maxLines=1,overflow=TextOverflow.Ellipsis)
+        Text("${playlist.songs.size} canciones",color=secondary,fontSize=12.sp,maxLines=1)
     }
 }
 
 @Composable private fun HomeRow(title:String,sub:String,icon:androidx.compose.ui.graphics.vector.ImageVector,fg:Color,secondary:Color,cover:String="",onClick:()->Unit){
-    Row(Modifier.fillMaxWidth().clickable(onClick=onClick).padding(horizontal=20.dp,vertical=9.dp),verticalAlignment=Alignment.CenterVertically){
-        if(cover.isNotBlank()) PlaylistCoverImage(cover,Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)),"Portada de $title",AccentPurple.copy(alpha=.12f),26.dp)
-        else Box(Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)).background(AccentPurple.copy(alpha=.14f)),contentAlignment=Alignment.Center){Icon(icon,null,tint=AccentPurple)}
-        Spacer(Modifier.width(12.dp));Column(Modifier.weight(1f)){Text(title,color=fg,fontWeight=FontWeight.SemiBold);Text(sub,color=secondary,fontSize=12.sp)};Icon(Icons.Default.ChevronRight,null,tint=secondary)
+    Row(
+        Modifier.fillMaxWidth().padding(horizontal=12.dp,vertical=3.dp)
+            .clip(RoundedCornerShape(17.dp)).clickable(onClick=onClick)
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha=.58f))
+            .padding(horizontal=13.dp,vertical=10.dp),
+        verticalAlignment=Alignment.CenterVertically
+    ){
+        if(cover.isNotBlank()) PlaylistCoverImage(cover,Modifier.size(50.dp).clip(RoundedCornerShape(12.dp)),"Portada de $title",AccentPurple.copy(alpha=.12f),26.dp)
+        else Box(Modifier.size(50.dp).clip(RoundedCornerShape(14.dp)).background(AccentPurple.copy(alpha=.14f)),contentAlignment=Alignment.Center){Icon(icon,null,tint=AccentPurple,modifier=Modifier.size(25.dp))}
+        Spacer(Modifier.width(13.dp))
+        Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(3.dp)){
+            Text(title,color=fg,fontWeight=FontWeight.Bold,maxLines=1,overflow=TextOverflow.Ellipsis)
+            Text(sub,color=secondary,fontSize=12.sp,maxLines=1,overflow=TextOverflow.Ellipsis)
+        }
+        Icon(Icons.Default.ChevronRight,null,tint=secondary)
     }
 }
 
