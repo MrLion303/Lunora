@@ -48,6 +48,24 @@ object PlaybackAudioEffects {
     }
 
     @Synchronized
+    fun bandCenterFrequenciesHz(): List<Int> {
+        val effect = equalizer ?: return emptyList()
+        return runCatching {
+            (0 until effect.numberOfBands.toInt().coerceAtMost(5))
+                .map { band -> (effect.getCenterFreq(band.toShort()).coerceAtLeast(0) / 1000) }
+        }.getOrDefault(emptyList())
+    }
+
+    @Synchronized
+    fun bandLevelRangeDb(): ClosedFloatingPointRange<Float>? {
+        val effect = equalizer ?: return null
+        return runCatching {
+            val range = effect.bandLevelRange
+            (range[0].toFloat() / 100f)..(range[1].toFloat() / 100f)
+        }.getOrNull()
+    }
+
+    @Synchronized
     fun setEnabled(enabled: Boolean) {
         runCatching { equalizer?.enabled = enabled }
     }
