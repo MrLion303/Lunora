@@ -737,8 +737,8 @@ private fun NegativeMusicApp() {
                 else -> LazyColumn(Modifier.fillMaxSize(),contentPadding=PaddingValues(bottom=8.dp)) {
                     item { Column(Modifier.padding(horizontal=20.dp, vertical=10.dp)) { Text("Tu música, tu mundo.",color=fg,fontSize=28.sp,fontWeight=FontWeight.ExtraBold); Text(if(loading)"Buscando música…" else "${songs.size} canciones en este dispositivo",color=secondary) } }
                     item { Row(Modifier.fillMaxWidth().padding(16.dp),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
-                        HomeTile("Reproducir todo","Tu biblioteca",Icons.Default.PlayArrow,Modifier.weight(1f),AccentSky){play(songs)}
-                        HomeTile(when(individualShuffleMode){1->"Aleatorio activado";2->"Aleatorio mágico";else->"Modo aleatorio"},"Mezcla tu música",Icons.Default.Shuffle,Modifier.weight(1f),AccentPink){toggleIndividualShuffle(songs)}
+                        HomeTile("Reproducir todo","Tu biblioteca",Icons.Default.PlayArrow,Modifier.weight(1f),AccentSky,dark,fg,secondary){play(songs)}
+                        HomeTile(when(individualShuffleMode){1->"Aleatorio activado";2->"Aleatorio mágico";else->"Modo aleatorio"},"Mezcla tu música",Icons.Default.Shuffle,Modifier.weight(1f),AccentPink,dark,fg,secondary){toggleIndividualShuffle(songs)}
                     } }
                     item { Text("Tus playlists",Modifier.padding(start=20.dp,top=18.dp,bottom=6.dp),color=fg,fontSize=19.sp,fontWeight=FontWeight.Bold) }
                     item { HomeRow("Crear playlist","Organiza tu música",Icons.Default.Add,fg,secondary){playlistOrigin=page;createDialog=true} }
@@ -1236,8 +1236,22 @@ private fun SwipeQueueContainer(song: Song, onQueue: () -> Unit, content: @Compo
     }
 }
 
-@Composable private fun HomeTile(title:String,sub:String,icon:androidx.compose.ui.graphics.vector.ImageVector,modifier:Modifier,accent:Color,onClick:()->Unit){
-    Card(modifier.clickable(onClick=onClick),colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surfaceVariant),shape=RoundedCornerShape(16.dp)){Column(Modifier.padding(15.dp)){Box(Modifier.size(42.dp).clip(RoundedCornerShape(12.dp)).background(accent.copy(alpha=.14f)),contentAlignment=Alignment.Center){Icon(icon,null,tint=accent,modifier=Modifier.size(28.dp))};Spacer(Modifier.height(14.dp));Text(title,color=MaterialTheme.colorScheme.onSurface,fontWeight=FontWeight.Bold);Text(sub,color=MaterialTheme.colorScheme.onSurfaceVariant,fontSize=11.sp)}}
+@Composable private fun HomeTile(title:String,sub:String,icon:androidx.compose.ui.graphics.vector.ImageVector,modifier:Modifier,accent:Color,dark:Boolean,fg:Color,secondary:Color,onClick:()->Unit){
+    val tileSurface = if (dark) Color(0xFF151322) else Color(0xFFF0ECF8)
+    Card(
+        modifier.clickable(onClick=onClick),
+        colors=CardDefaults.cardColors(containerColor=tileSurface, contentColor=fg),
+        shape=RoundedCornerShape(16.dp)
+    ) {
+        Column(Modifier.padding(15.dp)) {
+            Box(Modifier.size(42.dp).clip(RoundedCornerShape(12.dp)).background(accent.copy(alpha=.14f)),contentAlignment=Alignment.Center) {
+                Icon(icon,null,tint=accent,modifier=Modifier.size(28.dp))
+            }
+            Spacer(Modifier.height(14.dp))
+            Text(title,color=fg,fontWeight=FontWeight.Bold)
+            Text(sub,color=secondary,fontSize=11.sp)
+        }
+    }
 }
 @Composable private fun PlaylistGalleryCard(playlist: Playlist, modifier: Modifier, fg: Color, secondary: Color, onClick: () -> Unit) {
     Column(modifier.clickable(onClick = onClick).padding(bottom = 8.dp)) {
