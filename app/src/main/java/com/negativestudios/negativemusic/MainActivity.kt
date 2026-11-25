@@ -71,6 +71,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -639,16 +640,16 @@ private fun NegativeMusicApp() {
                     }
                     LazyColumn(Modifier.weight(1f).fillMaxWidth(),contentPadding=PaddingValues(bottom=16.dp)) {
                         if(libraryTab=="Playlists") {
-                            item { HomeRow("Descargas","${downloadedSongs.size} canciones descargadas",Icons.Default.Download,fg,secondary){page="Descargas"} }
+                            item { HomeRow("Descargas","${downloadedSongs.size} canciones descargadas",Icons.Default.Download,fg,secondary,dark=dark){page="Descargas"} }
                             if(playlists.isEmpty()) {
                                 item { Text("Tus playlists aparecerán aquí cuando crees una.",Modifier.padding(22.dp),color=secondary) }
                             } else if(playlistView=="list") {
-                                items(playlists,key={it.id}) { p -> HomeRow(p.name,"${p.songs.size} canciones",Icons.Default.QueueMusic,fg,secondary,p.cover){playlistOrigin=page;page="playlist:"+p.id} }
+                                items(playlists,key={it.id}) { p -> HomeRow(p.name,"${p.songs.size} canciones",Icons.Default.QueueMusic,fg,secondary,p.cover,dark){playlistOrigin=page;page="playlist:"+p.id} }
                             } else {
                                 items(playlists.chunked(2)) { rowPlaylists ->
                                     Row(Modifier.fillMaxWidth().padding(horizontal=14.dp,vertical=8.dp),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
                                         rowPlaylists.forEach { p ->
-                                            PlaylistGalleryCard(p,Modifier.weight(1f),fg,secondary) { playlistOrigin=page;page="playlist:"+p.id }
+                                            PlaylistGalleryCard(p,Modifier.weight(1f),fg,secondary,dark) { playlistOrigin=page;page="playlist:"+p.id }
                                         }
                                         if(rowPlaylists.size==1) Spacer(Modifier.weight(1f))
                                     }
@@ -805,15 +806,15 @@ private fun NegativeMusicApp() {
                         }
                     }
                     item { SectionHeading("Tus playlists","${playlists.size} colecciones",fg,secondary) }
-                    item { HomeRow("Crear playlist","Reúne canciones a tu manera",Icons.Default.Add,fg,secondary){playlistOrigin=page;createDialog=true} }
+                    item { HomeRow("Crear playlist","Reúne canciones a tu manera",Icons.Default.Add,fg,secondary,dark=dark){playlistOrigin=page;createDialog=true} }
                     if(playlists.isEmpty()) {
                         item { EmptyCollectionHint("Tus playlists aparecerán aquí","Crea una playlist para organizar tus canciones",Icons.Default.QueueMusic,secondary) }
                     } else {
                         items(playlists,key={it.id}) { p -> HomeRow(p.name,"${p.songs.size} canciones",Icons.Default.QueueMusic,fg,secondary,p.cover){playlistOrigin=page;page="playlist:"+p.id} }
                     }
                     item { SectionHeading("Tu biblioteca","Todo lo que necesitas para escuchar",fg,secondary) }
-                    item { HomeRow("Buscar canciones","${songs.size} canciones en el dispositivo",Icons.Default.LibraryMusic,fg,secondary){page="Buscar"} }
-                    item { HomeRow("Canciones favoritas","${favorites.size} canciones guardadas",Icons.Default.Favorite,fg,secondary){page="Favoritos"} }
+                    item { HomeRow("Buscar canciones","${songs.size} canciones en el dispositivo",Icons.Default.LibraryMusic,fg,secondary,dark=dark){page="Buscar"} }
+                    item { HomeRow("Canciones favoritas","${favorites.size} canciones guardadas",Icons.Default.Favorite,fg,secondary,dark=dark){page="Favoritos"} }
                 }
             }
             }
@@ -1141,7 +1142,7 @@ private fun NegativeMusicApp() {
         Column(Modifier.fillMaxWidth().padding(horizontal=20.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             Row(verticalAlignment=Alignment.CenterVertically) {
                 Box(Modifier.size(46.dp).clip(RoundedCornerShape(15.dp)).background(AccentPurple.copy(alpha=.14f)),contentAlignment=Alignment.Center) {
-                    Icon(Icons.Default.Speaker,color=AccentPurple,modifier=Modifier.size(25.dp))
+                    Icon(Icons.Default.Speaker,contentDescription=null,tint=AccentPurple,modifier=Modifier.size(25.dp))
                 }
                 Spacer(Modifier.width(13.dp))
                 Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(2.dp)) {
@@ -1152,7 +1153,7 @@ private fun NegativeMusicApp() {
             Text("Salidas disponibles en el dispositivo",fontSize=13.sp,fontWeight=FontWeight.SemiBold,color=secondary)
             if(outputNames.isEmpty()) {
                 Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(if(dark)LunoraColors.surfaceAccentDark else LunoraColors.surfaceAccentLight).padding(20.dp),contentAlignment=Alignment.Center) {
-                    Column(horizontalAlignment=Alignment.CenterVertically,verticalArrangement=Arrangement.spacedBy(8.dp)) {
+                    Column(horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(8.dp)) {
                         Icon(Icons.Default.HeadsetOff,null,tint=secondary,modifier=Modifier.size(30.dp))
                         Text("No se detectaron salidas disponibles",color=fg,fontWeight=FontWeight.SemiBold)
                         Text("Conecta unos auriculares o un dispositivo de audio y vuelve a abrir esta sección.",color=secondary,fontSize=12.sp,textAlign=TextAlign.Center)
@@ -1162,7 +1163,7 @@ private fun NegativeMusicApp() {
                 outputNames.forEach { device ->
                     Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(if(dark)LunoraColors.surfaceAccentDark else LunoraColors.surfaceAccentLight).padding(horizontal=15.dp,vertical=13.dp),verticalAlignment=Alignment.CenterVertically) {
                         Box(Modifier.size(42.dp).clip(RoundedCornerShape(13.dp)).background(AccentPurple.copy(alpha=.13f)),contentAlignment=Alignment.Center) {
-                            Icon(if(device.contains("bluetooth",true)||device.contains("buds",true)||device.contains("headset",true)) Icons.Default.Headphones else Icons.Default.Speaker,tint=AccentPurple,modifier=Modifier.size(22.dp))
+                            Icon(imageVector=if(device.contains("bluetooth",true)||device.contains("buds",true)||device.contains("headset",true)) Icons.Default.Headphones else Icons.Default.Speaker,contentDescription=null,tint=AccentPurple,modifier=Modifier.size(22.dp))
                         }
                         Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(2.dp)) {
@@ -1426,7 +1427,7 @@ private fun SwipeQueueContainer(song: Song, onQueue: () -> Unit, content: @Compo
         }
     }
 }
-@Composable private fun PlaylistGalleryCard(playlist: Playlist, modifier: Modifier, fg: Color, secondary: Color, onClick: () -> Unit) {
+@Composable private fun PlaylistGalleryCard(playlist: Playlist, modifier: Modifier, fg: Color, secondary: Color, dark: Boolean, onClick: () -> Unit) {
     Column(modifier.clip(RoundedCornerShape(18.dp)).clickable(onClick = onClick).background((if (dark) LunoraColors.surfaceAccentDark else LunoraColors.surfaceAccentLight).copy(alpha=.48f)).padding(9.dp)) {
         if (playlist.cover.isNotBlank()) {
             PlaylistCoverImage(playlist.cover,Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(13.dp)),"Portada de ${playlist.name}",(if (dark) LunoraColors.surfaceAccentDark else LunoraColors.surfaceAccentLight),42.dp)
@@ -1441,7 +1442,7 @@ private fun SwipeQueueContainer(song: Song, onQueue: () -> Unit, content: @Compo
     }
 }
 
-@Composable private fun HomeRow(title:String,sub:String,icon:androidx.compose.ui.graphics.vector.ImageVector,fg:Color,secondary:Color,cover:String="",onClick:()->Unit){
+@Composable private fun HomeRow(title:String,sub:String,icon:androidx.compose.ui.graphics.vector.ImageVector,fg:Color,secondary:Color,cover:String="",dark:Boolean,onClick:()->Unit){
     Row(
         Modifier.fillMaxWidth().padding(horizontal=12.dp,vertical=3.dp)
             .clip(RoundedCornerShape(17.dp)).clickable(onClick=onClick)
