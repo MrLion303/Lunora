@@ -92,10 +92,10 @@ import java.util.UUID
 import android.webkit.MimeTypeMap
 import java.util.concurrent.ExecutionException
 
-private val AccentPurple = Color(0xFF9B7BFF)
-private val AccentLavender = Color(0xFFC4B5FD)
-private val AccentSky = Color(0xFF8EDCFF)
-private val AccentPink = Color(0xFFFFA9D6)
+private val AccentPurple = LunoraColors.accentPrimary
+private val AccentLavender = LunoraColors.accentLavender
+private val AccentSky = LunoraColors.accentSky
+private val AccentPink = LunoraColors.accentPink
 private val QuicksandFamily = FontFamily(Font(R.font.quicksand_regular))
 private val ZenMaruGothicFamily = FontFamily(Font(R.font.zen_maru_gothic_regular))
 private fun typographyWithFontFamily(fontFamily: FontFamily): Typography {
@@ -190,9 +190,9 @@ private fun VerticalEqualizerSlider(
         }
     }
 }
-private val Dark = Color(0xFF070B10)
-private val Panel = Color(0xFF0B1118)
-private val Gray = Color(0xFFB3C0CE)
+private val Dark = LunoraColors.backgroundDark
+private val Panel = LunoraColors.surfaceDark
+private val Gray = LunoraColors.textSecondaryDark
 
 data class Song(val uri: String, val title: String, val artist: String, val album: String, val duration: Long, val size: Long, val albumId: Long, val path: String = "")
 data class Playlist(val id: String, val name: String, val description: String = "", val cover: String = "", val songs: List<String> = emptyList())
@@ -306,10 +306,10 @@ private fun NegativeMusicApp() {
     var cacheBytes by remember { mutableLongStateOf(0L) }
     var storageRefreshKey by remember { mutableIntStateOf(0) }
     val dark = when (theme) { "light" -> false; "system" -> isSystemInDarkTheme(); else -> true }
-    val bg = if (dark) Dark else Color(0xFFF7F7F7)
-    val fg = if (dark) Color.White else Color(0xFF171717)
+    val bg = if (dark) Dark else LunoraColors.backgroundLight
+    val fg = if (dark) Color.White else LunoraColors.textPrimaryLight
     val surface = if (dark) Panel else Color.White
-    val secondary = if (dark) Gray else Color(0xFF666666)
+    val secondary = if (dark) Gray else LunoraColors.textSecondaryLight
 
     fun configuredOutputVolume(): Float = when (volume) { "Bajo" -> 0.55f; "Alto" -> 1f; else -> 0.8f }
 
@@ -578,7 +578,7 @@ private fun NegativeMusicApp() {
             else -> { page = "Inicio"; search = "" }
         }
     }
-    MaterialTheme(colorScheme = if (dark) darkColorScheme(primary=AccentPurple, secondary=AccentSky, background=bg, surface=surface) else lightColorScheme(primary=AccentPurple, secondary=AccentSky, secondaryContainer=Color(0xFFDDF5FF), onSecondaryContainer=Color(0xFF15384A), surfaceVariant=Color(0xFFF0EAFF), background=bg, surface=surface), typography = if (Locale.getDefault().language == "ja") ZenMaruGothicTypography else QuicksandTypography) {
+    MaterialTheme(colorScheme = if (dark) darkColorScheme(primary=AccentPurple, secondary=AccentSky, background=bg, surface=surface) else lightColorScheme(primary=AccentPurple, secondary=AccentSky, secondaryContainer=LunoraColors.secondaryContainerLight, onSecondaryContainer=LunoraColors.onSecondaryContainerLight, surfaceVariant=LunoraColors.surfaceVariantLight, background=bg, surface=surface), typography = if (Locale.getDefault().language == "ja") ZenMaruGothicTypography else QuicksandTypography) {
         Column(Modifier.fillMaxSize().background(bg).statusBarsPadding()) {
             if (!page.startsWith("playlist:")) Row(Modifier.fillMaxWidth().padding(horizontal=18.dp, vertical=12.dp), verticalAlignment=Alignment.CenterVertically) {
                 Image(
@@ -607,8 +607,8 @@ private fun NegativeMusicApp() {
                         shape=RoundedCornerShape(18.dp),
                         colors=OutlinedTextFieldDefaults.colors(
                             focusedTextColor=fg, unfocusedTextColor=fg,
-                            focusedContainerColor=(if (dark) Color(0xFF171426) else Color(0xFFF2EFFA)),
-                            unfocusedContainerColor=(if (dark) Color(0xFF171426) else Color(0xFFF2EFFA)),
+                            focusedContainerColor=(if (dark) LunoraColors.surfaceAccentDark else LunoraColors.surfaceAccentLight),
+                            unfocusedContainerColor=(if (dark) LunoraColors.surfaceAccentDark else LunoraColors.surfaceAccentLight),
                             focusedBorderColor=AccentPurple, unfocusedBorderColor=Color.Transparent,
                             cursorColor=AccentPurple
                         )
@@ -626,7 +626,7 @@ private fun NegativeMusicApp() {
                             Text("Tu biblioteca",color=fg,fontSize=28.sp,fontWeight=FontWeight.ExtraBold)
                             Text("${playlists.size} playlists · ${favorites.size} favoritas",color=secondary,fontSize=13.sp)
                         }
-                        IconButton(onClick={val next=if(playlistView=="list") "gallery" else "list";playlistView=next;prefs.edit().putString("playlist_view",next).apply()},modifier=Modifier.size(44.dp).clip(CircleShape).background((if (dark) Color(0xFF171426) else Color(0xFFF2EFFA)))) {
+                        IconButton(onClick={val next=if(playlistView=="list") "gallery" else "list";playlistView=next;prefs.edit().putString("playlist_view",next).apply()},modifier=Modifier.size(44.dp).clip(CircleShape).background((if (dark) LunoraColors.surfaceAccentDark else LunoraColors.surfaceAccentLight))) {
                             Icon(if(playlistView=="list") Icons.Default.GridView else Icons.Default.ViewList, if(playlistView=="list") "Ver en galería" else "Ver en lista", tint=AccentPurple)
                         }
                         Spacer(Modifier.width(8.dp))
@@ -656,7 +656,7 @@ private fun NegativeMusicApp() {
                             }
                         } else {
                             item { Text("Tus canciones favoritas",Modifier.padding(start=20.dp,top=12.dp,bottom=6.dp),color=secondary,fontSize=13.sp) }
-                            items(songs.filter{it.uri in favorites}.map(::displaySong),key={it.uri}) { song -> Row(Modifier.fillMaxWidth().clickable{play(songs.filter{it.uri in favorites},song);showPlayer=true}.padding(horizontal=18.dp,vertical=8.dp),verticalAlignment=Alignment.CenterVertically){if(songCover(song).isNotBlank()) PlaylistCoverImage(songCover(song),Modifier.size(46.dp).clip(RoundedCornerShape(8.dp)),"Carátula de ${song.title}",(if (dark) Color(0xFF171426) else Color(0xFFF2EFFA)),24.dp) else Box(Modifier.size(46.dp).clip(RoundedCornerShape(8.dp)).background((if (dark) Color(0xFF171426) else Color(0xFFF2EFFA))),contentAlignment=Alignment.Center){Icon(Icons.Default.MusicNote,null,tint=AccentPurple)};Spacer(Modifier.width(12.dp));Column(Modifier.weight(1f)){Text(song.title,color=fg,maxLines=1);Text(song.artist,color=secondary,fontSize=12.sp,maxLines=1)};IconButton(onClick={menuSong=song}){Icon(Icons.Default.MoreVert,null,tint=secondary)}} }
+                            items(songs.filter{it.uri in favorites}.map(::displaySong),key={it.uri}) { song -> Row(Modifier.fillMaxWidth().clickable{play(songs.filter{it.uri in favorites},song);showPlayer=true}.padding(horizontal=18.dp,vertical=8.dp),verticalAlignment=Alignment.CenterVertically){if(songCover(song).isNotBlank()) PlaylistCoverImage(songCover(song),Modifier.size(46.dp).clip(RoundedCornerShape(8.dp)),"Carátula de ${song.title}",(if (dark) LunoraColors.surfaceAccentDark else LunoraColors.surfaceAccentLight),24.dp) else Box(Modifier.size(46.dp).clip(RoundedCornerShape(8.dp)).background((if (dark) LunoraColors.surfaceAccentDark else LunoraColors.surfaceAccentLight)),contentAlignment=Alignment.Center){Icon(Icons.Default.MusicNote,null,tint=AccentPurple)};Spacer(Modifier.width(12.dp));Column(Modifier.weight(1f)){Text(song.title,color=fg,maxLines=1);Text(song.artist,color=secondary,fontSize=12.sp,maxLines=1)};IconButton(onClick={menuSong=song}){Icon(Icons.Default.MoreVert,null,tint=secondary)}} }
                         }
                     }
                     Row(
@@ -686,13 +686,13 @@ private fun NegativeMusicApp() {
                 }
                 page == "Descargas" -> Column(Modifier.fillMaxSize()) {
                     Row(Modifier.fillMaxWidth().padding(horizontal=18.dp,vertical=12.dp),verticalAlignment=Alignment.CenterVertically) {
-                        IconButton(onClick={page="Biblioteca"},modifier=Modifier.size(42.dp).clip(CircleShape).background((if (dark) Color(0xFF171426) else Color(0xFFF2EFFA)))){Icon(Icons.Default.ArrowBack,"Volver",tint=fg)}
+                        IconButton(onClick={page="Biblioteca"},modifier=Modifier.size(42.dp).clip(CircleShape).background((if (dark) LunoraColors.surfaceAccentDark else LunoraColors.surfaceAccentLight))){Icon(Icons.Default.ArrowBack,"Volver",tint=fg)}
                         Spacer(Modifier.width(10.dp))
                         Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(3.dp)){
                             Text("Descargas",color=fg,fontSize=27.sp,fontWeight=FontWeight.ExtraBold)
                             Text("${downloadedSongs.size} canciones disponibles sin conexión",color=secondary,fontSize=12.sp)
                         }
-                        IconButton(onClick={scope.launch { loading=true; songs=withContext(Dispatchers.IO){scanMusic(ctx)}; loading=false }},modifier=Modifier.size(42.dp).clip(CircleShape).background((if (dark) Color(0xFF171426) else Color(0xFFF2EFFA)))){Icon(Icons.Default.Refresh,"Actualizar biblioteca",tint=AccentPurple)}
+                        IconButton(onClick={scope.launch { loading=true; songs=withContext(Dispatchers.IO){scanMusic(ctx)}; loading=false }},modifier=Modifier.size(42.dp).clip(CircleShape).background((if (dark) LunoraColors.surfaceAccentDark else LunoraColors.surfaceAccentLight))){Icon(Icons.Default.Refresh,"Actualizar biblioteca",tint=AccentPurple)}
                     }
                     SongRows(downloadedSongs.map(::displaySong),favorites,fg,secondary,now?.uri,dark,{songCover(it)},{play(downloadedSongs,it);showPlayer=true},{menuSong=it},{favorite(it)},{queue(it)},Modifier.weight(1f))
                 }
@@ -705,8 +705,8 @@ private fun NegativeMusicApp() {
                         }
                         Column {
                             Box(Modifier.fillMaxWidth().padding(horizontal=22.dp,vertical=5.dp),contentAlignment=Alignment.Center){
-                                if(selectedPlaylist?.cover?.isNotBlank()==true) PlaylistCoverImage(selectedPlaylist!!.cover,Modifier.fillMaxWidth(.68f).aspectRatio(1f).clip(RoundedCornerShape(18.dp)),"Portada de playlist",Color(0xFF201631),70.dp)
-                                else Box(Modifier.fillMaxWidth(.68f).aspectRatio(1f).clip(RoundedCornerShape(18.dp)).background(Brush.linearGradient(listOf(Color(0xFF30204D),Color(0xFF100D18)))),contentAlignment=Alignment.Center){Icon(Icons.Default.QueueMusic,null,tint=AccentLavender,modifier=Modifier.size(70.dp))}
+                                if(selectedPlaylist?.cover?.isNotBlank()==true) PlaylistCoverImage(selectedPlaylist!!.cover,Modifier.fillMaxWidth(.68f).aspectRatio(1f).clip(RoundedCornerShape(18.dp)),"Portada de playlist",LunoraColors.artworkPlaceholderDark,70.dp)
+                                else Box(Modifier.fillMaxWidth(.68f).aspectRatio(1f).clip(RoundedCornerShape(18.dp)).background(Brush.linearGradient(listOf(LunoraColors.artworkGradientStart,LunoraColors.artworkGradientEnd))),contentAlignment=Alignment.Center){Icon(Icons.Default.QueueMusic,null,tint=AccentLavender,modifier=Modifier.size(70.dp))}
                             }
                             Text(selectedPlaylist?.name ?: "Playlist",Modifier.padding(start=22.dp,end=20.dp,top=6.dp,bottom=4.dp),color=fg,fontSize=27.sp,fontWeight=FontWeight.ExtraBold)
                             Text(selectedPlaylist?.description.orEmpty(),Modifier.padding(horizontal=22.dp),color=secondary,maxLines=2,overflow=TextOverflow.Ellipsis)
@@ -773,7 +773,7 @@ private fun NegativeMusicApp() {
                                  verticalAlignment=Alignment.CenterVertically
                              ){
                                  if (reorderPlaylist) Icon(Icons.Default.DragHandle,"Mover canción",tint=AccentPurple,modifier=Modifier.size(28.dp))
-                                 Box(Modifier.size(50.dp).clip(RoundedCornerShape(8.dp)).background((if (dark) Color(0xFF171426) else Color(0xFFF2EFFA))),contentAlignment=Alignment.Center){Icon(Icons.Default.Album,null,tint=AccentPurple,modifier=Modifier.size(28.dp))}
+                                 Box(Modifier.size(50.dp).clip(RoundedCornerShape(8.dp)).background((if (dark) LunoraColors.surfaceAccentDark else LunoraColors.surfaceAccentLight)),contentAlignment=Alignment.Center){Icon(Icons.Default.Album,null,tint=AccentPurple,modifier=Modifier.size(28.dp))}
                                  Spacer(Modifier.width(11.dp));Column(Modifier.weight(1f)){Text(s.title,color=if(s.uri==now?.uri)AccentPurple else fg,fontWeight=FontWeight.SemiBold,maxLines=1,overflow=TextOverflow.Ellipsis);Text("${s.artist} · ${time(s.duration)}",color=secondary,fontSize=12.sp,maxLines=1,overflow=TextOverflow.Ellipsis)}
                                  if(s.uri in favorites)Icon(Icons.Default.Favorite,null,tint=AccentPurple,modifier=Modifier.size(16.dp))
                                  if (!reorderPlaylist) IconButton(onClick={menuSong=s}){Icon(Icons.Default.MoreVert,"Más opciones",tint=secondary)}
@@ -825,12 +825,12 @@ private fun NegativeMusicApp() {
                 onDragCancel={toastDragging=false;scope.launch{toastOffset.animateTo(0f,tween(180))}}
             )
         }.padding(horizontal=16.dp,vertical=10.dp)
-        ){Text(toast,color=if(dark)Color.White else Color(0xFF171717),fontSize=13.sp,maxLines=2,overflow=TextOverflow.Ellipsis)}
+        ){Text(toast,color=if(dark)Color.White else LunoraColors.textPrimaryLight,fontSize=13.sp,maxLines=2,overflow=TextOverflow.Ellipsis)}
     }
             if (now != null) {
-                Row(Modifier.fillMaxWidth().padding(horizontal=8.dp,vertical=5.dp).clip(RoundedCornerShape(16.dp)).background(if (dark) Color(0xFF171426) else Color(0xFFF2EFFA)).padding(horizontal=10.dp,vertical=8.dp),verticalAlignment=Alignment.CenterVertically) {
+                Row(Modifier.fillMaxWidth().padding(horizontal=8.dp,vertical=5.dp).clip(RoundedCornerShape(16.dp)).background(if (dark) LunoraColors.surfaceAccentDark else LunoraColors.surfaceAccentLight).padding(horizontal=10.dp,vertical=8.dp),verticalAlignment=Alignment.CenterVertically) {
                     Row(Modifier.weight(1f).clip(RoundedCornerShape(8.dp)).clickable { showPlayer = true },verticalAlignment=Alignment.CenterVertically) {
-                        if (songCover(now!!).isNotBlank()) PlaylistCoverImage(songCover(now!!),Modifier.size(38.dp).clip(RoundedCornerShape(8.dp)),"Carátula de ${songTitle(now!!)}",(if (dark) Color(0xFF171426) else Color(0xFFF2EFFA)),24.dp) else Icon(Icons.Default.Album,null,tint=AccentPurple,modifier=Modifier.size(38.dp))
+                        if (songCover(now!!).isNotBlank()) PlaylistCoverImage(songCover(now!!),Modifier.size(38.dp).clip(RoundedCornerShape(8.dp)),"Carátula de ${songTitle(now!!)}",(if (dark) LunoraColors.surfaceAccentDark else LunoraColors.surfaceAccentLight),24.dp) else Icon(Icons.Default.Album,null,tint=AccentPurple,modifier=Modifier.size(38.dp))
                         Spacer(Modifier.width(9.dp))
                         Box(Modifier.weight(1f).clip(RoundedCornerShape(4.dp))){
                             Column(Modifier.fillMaxWidth()){
@@ -926,7 +926,7 @@ private fun NegativeMusicApp() {
                                 items(candidates,key={it.uri}) { song ->
                                     val alreadyAdded=currentPlaylist?.songs?.contains(song.uri)==true
                                     Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).clickable(enabled=!alreadyAdded){selectedSongUris=if(song.uri in selectedSongUris)selectedSongUris-song.uri else selectedSongUris+song.uri}.padding(horizontal=7.dp,vertical=8.dp),verticalAlignment=Alignment.CenterVertically){
-                                        Box(Modifier.size(42.dp).clip(RoundedCornerShape(10.dp)).background(if(dark)Color(0xFF102D4A) else Color(0xFFF0EAFF)),contentAlignment=Alignment.Center){Icon(Icons.Default.MusicNote,null,tint=AccentPurple)}
+                                        Box(Modifier.size(42.dp).clip(RoundedCornerShape(10.dp)).background(if(dark)LunoraColors.infoSurfaceDark else LunoraColors.surfaceVariantLight),contentAlignment=Alignment.Center){Icon(Icons.Default.MusicNote,null,tint=AccentPurple)}
                                         Spacer(Modifier.width(10.dp));Column(Modifier.weight(1f)){Text(song.title,color=if(alreadyAdded)Gray else Color.White,fontWeight=FontWeight.SemiBold,maxLines=1,overflow=TextOverflow.Ellipsis);Text(song.artist,color=Gray,fontSize=12.sp,maxLines=1,overflow=TextOverflow.Ellipsis)}
                                         if(alreadyAdded)Icon(Icons.Default.CheckCircle,"Ya añadida",tint=AccentLavender,modifier=Modifier.size(22.dp)) else Checkbox(checked=song.uri in selectedSongUris,onCheckedChange={checked->selectedSongUris=if(checked)selectedSongUris+song.uri else selectedSongUris-song.uri},colors=CheckboxDefaults.colors(checkedColor=AccentPurple))
                                     }
@@ -967,7 +967,7 @@ private fun NegativeMusicApp() {
     editTarget?.let { p -> PlaylistDialog("Editar playlist",p.name,p.description,p.cover,{editTarget=null}) { n,d,c -> saveLists(playlists.map{if(it.id==p.id)it.copy(name=n,description=d,cover=c)else it});editTarget=null } }
     menuSong?.let { s -> androidx.compose.material3.ModalBottomSheet(onDismissRequest={menuSong=null},containerColor=surface,contentColor=fg) {
         Row(Modifier.fillMaxWidth().padding(horizontal=20.dp,vertical=8.dp),verticalAlignment=Alignment.CenterVertically) {
-            Box(Modifier.size(44.dp).clip(RoundedCornerShape(9.dp)).background(Color(0xFF102D4A)),contentAlignment=Alignment.Center){Icon(Icons.Default.Album,null,tint=AccentPurple)}
+            Box(Modifier.size(44.dp).clip(RoundedCornerShape(9.dp)).background(LunoraColors.infoSurfaceDark),contentAlignment=Alignment.Center){Icon(Icons.Default.Album,null,tint=AccentPurple)}
             Spacer(Modifier.width(12.dp));Column(Modifier.weight(1f)){Text(s.title,color=fg,fontSize=13.sp,fontWeight=FontWeight.SemiBold,maxLines=1,overflow=TextOverflow.Ellipsis);Text(s.artist,color=secondary,fontSize=11.sp,maxLines=1,overflow=TextOverflow.Ellipsis)}
         }
         HorizontalDivider(color=AccentLavender.copy(alpha=.18f))
@@ -1010,7 +1010,7 @@ private fun NegativeMusicApp() {
                     OutlinedTextField(value=metadataArtist,onValueChange={metadataArtist=it},modifier=Modifier.fillMaxWidth(),singleLine=true,label={Text("Artista")},colors=OutlinedTextFieldDefaults.colors(focusedTextColor=Color.White,unfocusedTextColor=Color.White,cursorColor=AccentPurple,focusedLabelColor=AccentPurple,unfocusedLabelColor=Gray))
                     val coverPicker=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()){uri->if(uri!=null){metadataCoverLoading=true;scope.launch{val saved=withContext(Dispatchers.IO){copyPlaylistCover(ctx,uri)};if(saved!=null)metadataCover=saved else toast="No se pudo guardar la imagen seleccionada.";metadataCoverLoading=false}}}
                     if(metadataCover.isNotBlank()) {
-                        PlaylistCoverImage(metadataCover,Modifier.fillMaxWidth().height(150.dp).clip(RoundedCornerShape(14.dp)),"Portada seleccionada",Color(0xFF201631),36.dp)
+                        PlaylistCoverImage(metadataCover,Modifier.fillMaxWidth().height(150.dp).clip(RoundedCornerShape(14.dp)),"Portada seleccionada",LunoraColors.artworkPlaceholderDark,36.dp)
                     }
                     OutlinedButton(onClick={coverPicker.launch(arrayOf("image/*"))},enabled=!metadataCoverLoading,modifier=Modifier.fillMaxWidth()){
                         Icon(Icons.Default.Image,null);Spacer(Modifier.width(8.dp));Text(when { metadataCoverLoading -> "Guardando portada…"; metadataCover.isBlank() -> "Elegir portada"; else -> "Cambiar portada" })
@@ -1071,8 +1071,8 @@ private fun NegativeMusicApp() {
                         IconButton(onClick={menuSong=now}){Icon(Icons.Default.MoreVert,"Opciones de la canción",tint=fg)}
                     }
                     Spacer(Modifier.height(12.dp))
-                    Box(Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(22.dp)).background(Brush.linearGradient(listOf(Color(0xFF123C67),Color(0xFF071018))))) {
-                        if (songCover(now!!).isNotBlank()) PlaylistCoverImage(songCover(now!!),Modifier.fillMaxSize(),"Carátula de ${songTitle(now!!)}",Color(0xFF071018),100.dp) else Icon(Icons.Default.Album,null,tint=AccentLavender,modifier=Modifier.size(100.dp).align(Alignment.Center))
+                    Box(Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(22.dp)).background(Brush.linearGradient(listOf(LunoraColors.playerGradientStart,LunoraColors.playerGradientEnd)))) {
+                        if (songCover(now!!).isNotBlank()) PlaylistCoverImage(songCover(now!!),Modifier.fillMaxSize(),"Carátula de ${songTitle(now!!)}",LunoraColors.playerGradientEnd,100.dp) else Icon(Icons.Default.Album,null,tint=AccentLavender,modifier=Modifier.size(100.dp).align(Alignment.Center))
                         Row(Modifier.fillMaxSize()){
                             Box(Modifier.weight(1f).fillMaxHeight().pointerInput(Unit){detectTapGestures(onDoubleTap={seekBy(-5,-1)})})
                             Box(Modifier.weight(1f).fillMaxHeight().pointerInput(Unit){detectTapGestures(onDoubleTap={seekBy(5,1)})})
@@ -1123,7 +1123,7 @@ private fun NegativeMusicApp() {
                     items((0 until qp.mediaItemCount).toList(),key={it}){
                         i->val mi=qp.getMediaItemAt(i);val song=songs.firstOrNull{it.uri==mi.localConfiguration?.uri?.toString()}
                         Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(if(i==qp.currentMediaItemIndex)AccentPurple.copy(alpha=.12f) else Color.Transparent).clickable{qp.seekTo(i,0);qp.play();showQueue=false}.padding(horizontal=10.dp,vertical=8.dp),verticalAlignment=Alignment.CenterVertically){
-                            Box(Modifier.size(46.dp).clip(RoundedCornerShape(11.dp)).background((if (dark) Color(0xFF171426) else Color(0xFFF2EFFA))),contentAlignment=Alignment.Center){Icon(if(i==qp.currentMediaItemIndex)Icons.Default.VolumeUp else Icons.Default.Album,null,tint=if(i==qp.currentMediaItemIndex)AccentPurple else secondary)}
+                            Box(Modifier.size(46.dp).clip(RoundedCornerShape(11.dp)).background((if (dark) LunoraColors.surfaceAccentDark else LunoraColors.surfaceAccentLight)),contentAlignment=Alignment.Center){Icon(if(i==qp.currentMediaItemIndex)Icons.Default.VolumeUp else Icons.Default.Album,null,tint=if(i==qp.currentMediaItemIndex)AccentPurple else secondary)}
                             Spacer(Modifier.width(11.dp))
                             Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(2.dp)){
                                 Text(song?.title?:mi.mediaMetadata.title?.toString().orEmpty(),color=if(i==qp.currentMediaItemIndex)AccentPurple else fg,fontWeight=FontWeight.SemiBold,maxLines=1,overflow=TextOverflow.Ellipsis)
@@ -1151,7 +1151,7 @@ private fun NegativeMusicApp() {
             }
             Text("Salidas disponibles en el dispositivo",fontSize=13.sp,fontWeight=FontWeight.SemiBold,color=secondary)
             if(outputNames.isEmpty()) {
-                Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(if(dark)Color(0xFF171426) else Color(0xFFF2EFFA)).padding(20.dp),contentAlignment=Alignment.Center) {
+                Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(if(dark)LunoraColors.surfaceAccentDark else LunoraColors.surfaceAccentLight).padding(20.dp),contentAlignment=Alignment.Center) {
                     Column(horizontalAlignment=Alignment.CenterVertically,verticalArrangement=Arrangement.spacedBy(8.dp)) {
                         Icon(Icons.Default.HeadsetOff,null,tint=secondary,modifier=Modifier.size(30.dp))
                         Text("No se detectaron salidas disponibles",color=fg,fontWeight=FontWeight.SemiBold)
@@ -1160,7 +1160,7 @@ private fun NegativeMusicApp() {
                 }
             } else {
                 outputNames.forEach { device ->
-                    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(if(dark)Color(0xFF171426) else Color(0xFFF2EFFA)).padding(horizontal=15.dp,vertical=13.dp),verticalAlignment=Alignment.CenterVertically) {
+                    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(if(dark)LunoraColors.surfaceAccentDark else LunoraColors.surfaceAccentLight).padding(horizontal=15.dp,vertical=13.dp),verticalAlignment=Alignment.CenterVertically) {
                         Box(Modifier.size(42.dp).clip(RoundedCornerShape(13.dp)).background(AccentPurple.copy(alpha=.13f)),contentAlignment=Alignment.Center) {
                             Icon(if(device.contains("bluetooth",true)||device.contains("buds",true)||device.contains("headset",true)) Icons.Default.Headphones else Icons.Default.Speaker,tint=AccentPurple,modifier=Modifier.size(22.dp))
                         }
@@ -1368,8 +1368,8 @@ private fun SwipeQueueContainer(song: Song, onQueue: () -> Unit, content: @Compo
                     verticalAlignment=Alignment.CenterVertically
                 ){
                     Box {
-                        if (cover(song).isNotBlank()) PlaylistCoverImage(cover(song),Modifier.size(52.dp).clip(RoundedCornerShape(12.dp)),"Carátula de ${song.title}",(if (dark) Color(0xFF171426) else Color(0xFFF2EFFA)),28.dp)
-                        else Box(Modifier.size(52.dp).clip(RoundedCornerShape(12.dp)).background((if (dark) Color(0xFF171426) else Color(0xFFF2EFFA))),contentAlignment=Alignment.Center){Icon(Icons.Default.Album,null,tint=AccentPurple,modifier=Modifier.size(28.dp))}
+                        if (cover(song).isNotBlank()) PlaylistCoverImage(cover(song),Modifier.size(52.dp).clip(RoundedCornerShape(12.dp)),"Carátula de ${song.title}",(if (dark) LunoraColors.surfaceAccentDark else LunoraColors.surfaceAccentLight),28.dp)
+                        else Box(Modifier.size(52.dp).clip(RoundedCornerShape(12.dp)).background((if (dark) LunoraColors.surfaceAccentDark else LunoraColors.surfaceAccentLight)),contentAlignment=Alignment.Center){Icon(Icons.Default.Album,null,tint=AccentPurple,modifier=Modifier.size(28.dp))}
                         if(isCurrent) Box(Modifier.align(Alignment.BottomEnd).padding(3.dp).size(18.dp).clip(CircleShape).background(AccentPurple),contentAlignment=Alignment.Center){Icon(Icons.Default.VolumeUp,null,tint=Color.White,modifier=Modifier.size(12.dp))}
                     }
                     Spacer(Modifier.width(12.dp))
@@ -1406,7 +1406,7 @@ private fun SwipeQueueContainer(song: Song, onQueue: () -> Unit, content: @Compo
 }
 
 @Composable private fun HomeTile(title:String,sub:String,icon:androidx.compose.ui.graphics.vector.ImageVector,modifier:Modifier,accent:Color,dark:Boolean,fg:Color,secondary:Color,onClick:()->Unit){
-    val tileSurface = if (dark) Color(0xFF171426) else Color(0xFFF2EFFA)
+    val tileSurface = if (dark) LunoraColors.surfaceAccentDark else LunoraColors.surfaceAccentLight
     Card(
         modifier=modifier.heightIn(min=142.dp).clickable(onClick=onClick),
         colors=CardDefaults.cardColors(containerColor=tileSurface, contentColor=fg),
@@ -1427,11 +1427,11 @@ private fun SwipeQueueContainer(song: Song, onQueue: () -> Unit, content: @Compo
     }
 }
 @Composable private fun PlaylistGalleryCard(playlist: Playlist, modifier: Modifier, fg: Color, secondary: Color, onClick: () -> Unit) {
-    Column(modifier.clip(RoundedCornerShape(18.dp)).clickable(onClick = onClick).background((if (dark) Color(0xFF171426) else Color(0xFFF2EFFA)).copy(alpha=.48f)).padding(9.dp)) {
+    Column(modifier.clip(RoundedCornerShape(18.dp)).clickable(onClick = onClick).background((if (dark) LunoraColors.surfaceAccentDark else LunoraColors.surfaceAccentLight).copy(alpha=.48f)).padding(9.dp)) {
         if (playlist.cover.isNotBlank()) {
-            PlaylistCoverImage(playlist.cover,Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(13.dp)),"Portada de ${playlist.name}",(if (dark) Color(0xFF171426) else Color(0xFFF2EFFA)),42.dp)
+            PlaylistCoverImage(playlist.cover,Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(13.dp)),"Portada de ${playlist.name}",(if (dark) LunoraColors.surfaceAccentDark else LunoraColors.surfaceAccentLight),42.dp)
         } else {
-            Box(Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(13.dp)).background(Brush.linearGradient(listOf(AccentPurple.copy(alpha=.24f),(if (dark) Color(0xFF171426) else Color(0xFFF2EFFA))))),contentAlignment=Alignment.Center) {
+            Box(Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(13.dp)).background(Brush.linearGradient(listOf(AccentPurple.copy(alpha=.24f),(if (dark) LunoraColors.surfaceAccentDark else LunoraColors.surfaceAccentLight)))),contentAlignment=Alignment.Center) {
                 Icon(Icons.Default.QueueMusic,contentDescription=null,tint=AccentLavender,modifier=Modifier.size(42.dp))
             }
         }
@@ -1445,7 +1445,7 @@ private fun SwipeQueueContainer(song: Song, onQueue: () -> Unit, content: @Compo
     Row(
         Modifier.fillMaxWidth().padding(horizontal=12.dp,vertical=3.dp)
             .clip(RoundedCornerShape(17.dp)).clickable(onClick=onClick)
-            .background((if (dark) Color(0xFF171426) else Color(0xFFF2EFFA)).copy(alpha=.58f))
+            .background((if (dark) LunoraColors.surfaceAccentDark else LunoraColors.surfaceAccentLight).copy(alpha=.58f))
             .padding(horizontal=13.dp,vertical=10.dp),
         verticalAlignment=Alignment.CenterVertically
     ){
@@ -1484,12 +1484,12 @@ private fun PlaylistDialog(title:String,initialName:String,initialDesc:String,in
                     }
                     IconButton(onClick=onDismiss){Icon(Icons.Default.Close,"Cerrar",tint=Gray)}
                 }
-                Box(Modifier.fillMaxWidth().height(110.dp).clip(RoundedCornerShape(18.dp)).background(Brush.linearGradient(listOf(Color(0xFF102D4A),Color(0xFF10202C)))),contentAlignment=Alignment.Center) {
-                    if(cover.isNotBlank()) PlaylistCoverImage(cover,Modifier.fillMaxSize(),"Vista previa de portada",Color(0xFF101923),35.dp)
+                Box(Modifier.fillMaxWidth().height(110.dp).clip(RoundedCornerShape(18.dp)).background(Brush.linearGradient(listOf(LunoraColors.infoSurfaceDark,LunoraColors.dialogGradientEnd))),contentAlignment=Alignment.Center) {
+                    if(cover.isNotBlank()) PlaylistCoverImage(cover,Modifier.fillMaxSize(),"Vista previa de portada",LunoraColors.inputSurfaceDark,35.dp)
                     else Column(horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(5.dp)) { Icon(Icons.Default.MusicNote,null,tint=AccentLavender,modifier=Modifier.size(35.dp)); Text("Tu playlist",color=Color.White,fontWeight=FontWeight.SemiBold); Text("Puedes cambiar la portada cuando quieras",color=Gray,fontSize=11.sp) }
                 }
-                OutlinedTextField(value=name,onValueChange={name=it},modifier=Modifier.fillMaxWidth(),label={Text("Nombre de la playlist")},placeholder={Text("Por ejemplo: Favoritas de noche")},singleLine=true,shape=RoundedCornerShape(14.dp),leadingIcon={Icon(Icons.Default.Edit,null)},colors=OutlinedTextFieldDefaults.colors(focusedTextColor=Color.White,unfocusedTextColor=Color.White,focusedContainerColor=Color(0xFF101923),unfocusedContainerColor=Color(0xFF101923),focusedBorderColor=AccentPurple,unfocusedBorderColor=Gray.copy(alpha=.5f),focusedLabelColor=AccentPurple,unfocusedLabelColor=Gray,cursorColor=AccentPurple))
-                OutlinedTextField(value=desc,onValueChange={desc=it},modifier=Modifier.fillMaxWidth(),label={Text("Descripción (opcional)")},placeholder={Text("¿Qué canciones reúne?")},minLines=2,maxLines=3,shape=RoundedCornerShape(14.dp),colors=OutlinedTextFieldDefaults.colors(focusedTextColor=Color.White,unfocusedTextColor=Color.White,focusedContainerColor=Color(0xFF101923),unfocusedContainerColor=Color(0xFF101923),focusedBorderColor=AccentPurple,unfocusedBorderColor=Gray.copy(alpha=.5f),focusedLabelColor=AccentPurple,unfocusedLabelColor=Gray,cursorColor=AccentPurple))
+                OutlinedTextField(value=name,onValueChange={name=it},modifier=Modifier.fillMaxWidth(),label={Text("Nombre de la playlist")},placeholder={Text("Por ejemplo: Favoritas de noche")},singleLine=true,shape=RoundedCornerShape(14.dp),leadingIcon={Icon(Icons.Default.Edit,null)},colors=OutlinedTextFieldDefaults.colors(focusedTextColor=Color.White,unfocusedTextColor=Color.White,focusedContainerColor=LunoraColors.inputSurfaceDark,unfocusedContainerColor=LunoraColors.inputSurfaceDark,focusedBorderColor=AccentPurple,unfocusedBorderColor=Gray.copy(alpha=.5f),focusedLabelColor=AccentPurple,unfocusedLabelColor=Gray,cursorColor=AccentPurple))
+                OutlinedTextField(value=desc,onValueChange={desc=it},modifier=Modifier.fillMaxWidth(),label={Text("Descripción (opcional)")},placeholder={Text("¿Qué canciones reúne?")},minLines=2,maxLines=3,shape=RoundedCornerShape(14.dp),colors=OutlinedTextFieldDefaults.colors(focusedTextColor=Color.White,unfocusedTextColor=Color.White,focusedContainerColor=LunoraColors.inputSurfaceDark,unfocusedContainerColor=LunoraColors.inputSurfaceDark,focusedBorderColor=AccentPurple,unfocusedBorderColor=Gray.copy(alpha=.5f),focusedLabelColor=AccentPurple,unfocusedLabelColor=Gray,cursorColor=AccentPurple))
                 OutlinedButton(onClick={picker.launch(arrayOf("image/*"))},enabled=!coverLoading,modifier=Modifier.fillMaxWidth(),shape=RoundedCornerShape(14.dp)) {
                     Icon(Icons.Default.Image,null);Spacer(Modifier.width(8.dp));Text(when { coverLoading -> "Guardando portada…"; cover.isBlank() -> "Elegir imagen de portada"; else -> "Cambiar imagen de portada" })
                 }
@@ -1513,8 +1513,8 @@ private fun SettingsPage(
 ) {
     val systemDark = isSystemInDarkTheme()
     val dark = when (theme) { "light" -> false; "system" -> systemDark; else -> true }
-    val fg = if (dark) Color.White else Color(0xFF111820)
-    val sec = if (dark) Color(0xFFB3C0CE) else Color(0xFF596675)
+    val fg = if (dark) Color.White else LunoraColors.textPrimarySettingsLight
+    val sec = if (dark) LunoraColors.textSecondaryDark else LunoraColors.textSecondarySettingsLight
     val card = if (dark) Panel else Color.White
     val storage = remember(storageRefreshKey) {
         runCatching {
@@ -1626,8 +1626,8 @@ private fun SettingsPage(
                         val freeFraction=(1f-appFraction-songFraction-otherFraction).coerceIn(0f,1f)
                         val segmentSum=(appFraction+songFraction+otherFraction+freeFraction).coerceAtLeast(0.0001f)
                         Row(Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(8.dp))){
-                            Box(Modifier.weight((appFraction/segmentSum).coerceAtLeast(0.0001f)).fillMaxHeight().background(Color(0xFFFFC107)))
-                            Box(Modifier.weight((songFraction/segmentSum).coerceAtLeast(0.0001f)).fillMaxHeight().background(Color(0xFF39B54A)))
+                            Box(Modifier.weight((appFraction/segmentSum).coerceAtLeast(0.0001f)).fillMaxHeight().background(LunoraColors.storageApp))
+                            Box(Modifier.weight((songFraction/segmentSum).coerceAtLeast(0.0001f)).fillMaxHeight().background(LunoraColors.storageMusic))
                             Box(Modifier.weight((otherFraction/segmentSum).coerceAtLeast(0.0001f)).fillMaxHeight().background(AccentPurple.copy(alpha=.65f)))
                             Box(Modifier.weight((freeFraction/segmentSum).coerceAtLeast(0.0001f)).fillMaxHeight().background(AccentLavender.copy(alpha=.12f)))
                         }
