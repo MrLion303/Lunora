@@ -125,26 +125,27 @@ private val ZenMaruGothicTypography = typographyWithFontFamily(ZenMaruGothicFami
 private fun VerticalEqualizerSlider(
     value: Float,
     onValueChange: (Float) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    valueRange: ClosedFloatingPointRange<Float> = -15f..15f
 ) {
     Box(
         modifier = modifier
-            .pointerInput(onValueChange) {
+            .pointerInput(onValueChange, valueRange) {
                 detectTapGestures { offset ->
                     val inset = 10.dp.toPx()
                     val usableHeight = (size.height - inset * 2).coerceAtLeast(1f)
                     val fraction = (1f - ((offset.y - inset) / usableHeight)).coerceIn(0f, 1f)
-                    onValueChange(fraction * 30f - 15f)
+                    onValueChange(valueRange.start + fraction * (valueRange.endInclusive - valueRange.start))
                 }
             }
-            .pointerInput(onValueChange) {
+            .pointerInput(onValueChange, valueRange) {
                 detectVerticalDragGestures(
                     onVerticalDrag = { change, _ ->
                         change.consume()
                         val inset = 10.dp.toPx()
                         val usableHeight = (size.height - inset * 2).coerceAtLeast(1f)
                         val fraction = (1f - ((change.position.y - inset) / usableHeight)).coerceIn(0f, 1f)
-                        onValueChange(fraction * 30f - 15f)
+                        onValueChange(valueRange.start + fraction * (valueRange.endInclusive - valueRange.start))
                     }
                 )
             },
@@ -155,7 +156,7 @@ private fun VerticalEqualizerSlider(
             val inset = 10.dp.toPx()
             val top = inset
             val bottom = (size.height - inset).coerceAtLeast(top + 1f)
-            val fraction = ((value + 15f) / 30f).coerceIn(0f, 1f)
+            val fraction = ((value - valueRange.start) / (valueRange.endInclusive - valueRange.start).coerceAtLeast(0.0001f)).coerceIn(0f, 1f)
             val thumbY = bottom - fraction * (bottom - top)
             drawLine(
                 color = AccentLavender.copy(alpha = 0.22f),
@@ -1409,19 +1410,27 @@ private fun SettingsPage(
                         SettingsSwitch("Ecualizador", "Ajusta el sonido durante la reproducción.", eq, onEq, fg, sec)
                         if (eq) {
                             Text("Ecualizador",color=fg,fontSize=18.sp,fontWeight=FontWeight.Bold)
+                            val eqRange = PlaybackAudioEffects.bandLevelRangeDb() ?: (-15f..15f)
+                            val actualFrequencies = PlaybackAudioEffects.bandCenterFrequenciesHz()
+                            val fallbackFrequencies = listOf(60, 230, 910, 3600, 14000)
+                            val frequencies = (actualFrequencies.ifEmpty { fallbackFrequencies }).take(eqBands.size)
                             val presets=listOf("Normal" to listOf(0,0,0,0,0),"Rock" to listOf(5,3,-1,3,5),"Pop" to listOf(-2,2,4,2,-1),"Bajos" to listOf(7,5,2,0,0),"Voz" to listOf(-2,0,3,4,3))
-                            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(7.dp)){presets.forEach{(name,values)->FilterChip(selected=eqBands.map{it.toInt()}==values,onClick={values.forEachIndexed{index,value->onBand(index,value.toFloat())}},label={Text(name)})}}
+                            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(7.dp)){presets.forEach{(name,values)->
+                                val supportedValues = values.take(frequencies.size).map { it.toFloat().coerceIn(eqRange.start, eqRange.endInclusive) }
+                                FilterChip(selected=eqBands.take(frequencies.size).map{it.toInt()}==supportedValues.map{it.toInt()},onClick={supportedValues.forEachIndexed{index,value->onBand(index,value)}},label={Text(name)})
+                            }}
                             Row(Modifier.fillMaxWidth().height(320.dp),horizontalArrangement=Arrangement.SpaceEvenly,verticalAlignment=Alignment.CenterVertically) {
-                                val frequencies=listOf("60","230","910","3.6k","14k")
-                                eqBands.forEachIndexed { index,value ->
+                                eqBands.take(frequencies.size).forEachIndexed { index,value ->
+                                    val frequencyLabel = if (frequencies[index] >= 1000) "%.1fk".format(Locale.getDefault(), frequencies[index] / 1000f).removeSuffix(".0k") else frequencies[index].toString()
                                     Column(Modifier.weight(1f),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.Center) {
-                                        Text("%+d".format(value.toInt()),color=AccentPurple,fontSize=13.sp,fontWeight=FontWeight.Bold)
+                                        Text("%+.0f".format(Locale.getDefault(), value.coerceIn(eqRange.start, eqRange.endInclusive)),color=AccentPurple,fontSize=13.sp,fontWeight=FontWeight.Bold)
                                         VerticalEqualizerSlider(
-                                            value = value,
-                                            onValueChange = { onBand(index, it) },
-                                            modifier = Modifier.fillMaxWidth().height(290.dp)
+                                            value = value.coerceIn(eqRange.start, eqRange.endInclusive),
+                                            onValueChange = { onBand(index, it.coerceIn(eqRange.start, eqRange.endInclusive)) },
+                                            modifier = Modifier.fillMaxWidth().height(290.dp),
+                                            valueRange = eqRange
                                         )
-                                        Text(frequencies[index],color=sec,fontSize=11.sp,fontWeight=FontWeight.SemiBold)
+                                        Text(frequencyLabel,color=sec,fontSize=11.sp,fontWeight=FontWeight.SemiBold)
                                     }
                                 }
                             }
