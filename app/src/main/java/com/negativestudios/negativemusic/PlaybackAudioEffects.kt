@@ -40,7 +40,6 @@ object PlaybackAudioEffects {
             val prefs = context.getSharedPreferences("negative_music", Context.MODE_PRIVATE)
             val effect = Equalizer(0, audioSessionId)
             equalizer = effect
-            val count = effect.numberOfBands.toInt().coerceAtMost(5)
             val values = (0 until 5).map { prefs.getInt("eqBand$it", 0) }
             applyBands(values)
             effect.enabled = prefs.getBoolean("eq", false)
