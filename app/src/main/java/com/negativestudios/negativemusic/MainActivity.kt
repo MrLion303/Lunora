@@ -592,14 +592,47 @@ private fun NegativeMusicApp() {
             when {
                 page == "Ajustes" -> SettingsPage(theme, settingsSection, { settingsSection = it }, { theme=it; prefs.edit().putString("theme",it).apply() }, crossfade, { crossfade=it; prefs.edit().putInt("crossfade",it.toInt()).apply() }, mono, { mono=it; prefs.edit().putBoolean("mono",it).apply(); PlaybackAudioEffects.setMonoEnabled(it) }, normalize, { normalize=it; prefs.edit().putBoolean("normalize",it).apply(); PlaybackAudioEffects.setNormalizationEnabled(it); controller?.volume=configuredOutputVolume() }, volume, { volume=it; prefs.edit().putString("volume",it).apply(); controller?.volume=configuredOutputVolume() }, eqOn, { eqOn=it; prefs.edit().putBoolean("eq",it).apply(); PlaybackAudioEffects.setEnabled(it) }, eqBands, { index,value -> val snapped=value.roundToInt().toFloat(); val updated=eqBands.toMutableList(); updated[index]=snapped; eqBands=updated; prefs.edit().putInt("eqBand$index",snapped.toInt()).apply(); PlaybackAudioEffects.applyBands(updated.map{it.toInt()}) }, songs.size, songs.sumOf{it.size}, appBytes, cacheBytes, storageRefreshKey, { scope.launch { withContext(Dispatchers.IO) { ctx.cacheDir.deleteRecursively(); ctx.cacheDir.mkdirs() }; storageRefreshKey++; toast="Caché limpiada." } }, { clearDataDialog=true })
                 page == "Buscar" -> Column(Modifier.fillMaxSize()) {
-                    OutlinedTextField(search,{search=it},Modifier.fillMaxWidth().padding(horizontal=16.dp),placeholder={Text("¿Qué quieres escuchar?")},leadingIcon={Icon(Icons.Default.Search,null)},singleLine=true)
+                    Column(Modifier.fillMaxWidth().padding(horizontal=20.dp, vertical=12.dp), verticalArrangement=Arrangement.spacedBy(5.dp)) {
+                        Text("Buscar música", color=fg, fontSize=28.sp, fontWeight=FontWeight.ExtraBold)
+                        Text("Encuentra algo para escuchar", color=secondary, fontSize=13.sp)
+                    }
+                    OutlinedTextField(
+                        value=search,
+                        onValueChange={search=it},
+                        modifier=Modifier.fillMaxWidth().padding(horizontal=16.dp, vertical=8.dp),
+                        placeholder={Text("Canción, artista o álbum")},
+                        leadingIcon={Icon(Icons.Default.Search,null,tint=AccentPurple)},
+                        trailingIcon={if(search.isNotBlank()) IconButton(onClick={search=""}){Icon(Icons.Default.Close,"Limpiar búsqueda")} else null},
+                        singleLine=true,
+                        shape=RoundedCornerShape(18.dp),
+                        colors=OutlinedTextFieldDefaults.colors(
+                            focusedTextColor=fg, unfocusedTextColor=fg,
+                            focusedContainerColor=MaterialTheme.colorScheme.surfaceVariant,
+                            unfocusedContainerColor=MaterialTheme.colorScheme.surfaceVariant,
+                            focusedBorderColor=AccentPurple, unfocusedBorderColor=Color.Transparent,
+                            cursorColor=AccentPurple
+                        )
+                    )
+                    Row(Modifier.fillMaxWidth().padding(horizontal=20.dp, vertical=7.dp),verticalAlignment=Alignment.CenterVertically) {
+                        Text(if(search.isBlank()) "Tu colección" else "Resultados",color=fg,fontWeight=FontWeight.Bold,fontSize=15.sp)
+                        Spacer(Modifier.weight(1f))
+                        Text("${visibleSongs.size} canciones",color=secondary,fontSize=12.sp)
+                    }
                     SongRows(visibleSongs,favorites,fg,secondary,now?.uri,dark,{songCover(it)},{play(visibleSongs,it);showPlayer=true},{menuSong=it},{favorite(it)},{queue(it)}, Modifier.weight(1f))
                 }
                 page == "Biblioteca" -> Column(Modifier.fillMaxSize()) {
-                    Row(Modifier.fillMaxWidth().padding(horizontal=18.dp,vertical=10.dp),verticalAlignment=Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)){Text("Tu biblioteca",color=fg,fontSize=27.sp,fontWeight=FontWeight.ExtraBold);Text("${playlists.size} playlists",color=secondary,fontSize=13.sp)}
-                        IconButton(onClick={val next=if(playlistView=="list") "gallery" else "list";playlistView=next;prefs.edit().putString("playlist_view",next).apply()}) { Icon(if(playlistView=="list") Icons.Default.GridView else Icons.Default.ViewList, if(playlistView=="list") "Ver en galería" else "Ver en lista", tint=AccentPurple) }
-                        Button(onClick={playlistOrigin=page;createDialog=true},colors=ButtonDefaults.buttonColors(containerColor=AccentPurple,contentColor=Color.White)){Icon(Icons.Default.Add,null);Spacer(Modifier.width(5.dp));Text("Crear")}
+                    Row(Modifier.fillMaxWidth().padding(horizontal=20.dp,vertical=14.dp),verticalAlignment=Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(4.dp)){
+                            Text("Tu biblioteca",color=fg,fontSize=28.sp,fontWeight=FontWeight.ExtraBold)
+                            Text("${playlists.size} playlists · ${favorites.size} favoritas",color=secondary,fontSize=13.sp)
+                        }
+                        IconButton(onClick={val next=if(playlistView=="list") "gallery" else "list";playlistView=next;prefs.edit().putString("playlist_view",next).apply()},modifier=Modifier.size(44.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant)) {
+                            Icon(if(playlistView=="list") Icons.Default.GridView else Icons.Default.ViewList, if(playlistView=="list") "Ver en galería" else "Ver en lista", tint=AccentPurple)
+                        }
+                        Spacer(Modifier.width(8.dp))
+                        FilledTonalButton(onClick={playlistOrigin=page;createDialog=true},colors=ButtonDefaults.filledTonalButtonColors(containerColor=AccentPurple.copy(alpha=.16f),contentColor=AccentPurple),shape=RoundedCornerShape(14.dp)){
+                            Icon(Icons.Default.Add,null);Spacer(Modifier.width(5.dp));Text("Crear")
+                        }
                     }
                     Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal=14.dp,vertical=4.dp),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                         listOf("Playlists","Favoritos").forEach { tab -> FilterChip(selected=libraryTab==tab,onClick={libraryTab=tab},label={Text(tab)},colors=FilterChipDefaults.filterChipColors(selectedContainerColor=AccentPurple.copy(alpha=.2f),selectedLabelColor=if(dark) Color.White else AccentPurple)) }
@@ -745,18 +778,29 @@ private fun NegativeMusicApp() {
                      }
                      }
                  page == "Favoritos" -> Column(Modifier.fillMaxSize()) { Text("Tus canciones favoritas",Modifier.padding(20.dp),color=fg,fontSize=26.sp,fontWeight=FontWeight.Bold); SongRows(visibleSongs,favorites,fg,secondary,now?.uri,dark,{songCover(it)},{play(songs.filter{it.uri in favorites},it);showPlayer=true},{menuSong=it},{favorite(it)},{queue(it)}, Modifier.weight(1f)) }
-                else -> LazyColumn(Modifier.fillMaxSize(),contentPadding=PaddingValues(bottom=8.dp)) {
-                    item { Column(Modifier.padding(horizontal=20.dp, vertical=10.dp)) { Text("Tu música, tu mundo.",color=fg,fontSize=28.sp,fontWeight=FontWeight.ExtraBold); Text(if(loading)"Buscando música…" else "${songs.size} canciones en este dispositivo",color=secondary) } }
-                    item { Row(Modifier.fillMaxWidth().padding(16.dp),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
-                        HomeTile("Reproducir todo","Tu biblioteca",Icons.Default.PlayArrow,Modifier.weight(1f),AccentSky,dark,fg,secondary){play(songs)}
-                        HomeTile(when(individualShuffleMode){1->"Aleatorio activado";2->"Aleatorio mágico";else->"Modo aleatorio"},"Mezcla tu música",Icons.Default.Shuffle,Modifier.weight(1f),AccentPink,dark,fg,secondary){toggleIndividualShuffle(songs)}
-                    } }
-                    item { Text("Tus playlists",Modifier.padding(start=20.dp,top=18.dp,bottom=6.dp),color=fg,fontSize=19.sp,fontWeight=FontWeight.Bold) }
-                    item { HomeRow("Crear playlist","Organiza tu música",Icons.Default.Add,fg,secondary){playlistOrigin=page;createDialog=true} }
-                    items(playlists) { p -> HomeRow(p.name,"${p.songs.size} canciones",Icons.Default.QueueMusic,fg,secondary,p.cover){playlistOrigin=page;page="playlist:"+p.id} }
-                    item { Text("Tu biblioteca",Modifier.padding(start=20.dp,top=18.dp,bottom=6.dp),color=fg,fontSize=19.sp,fontWeight=FontWeight.Bold) }
+                else -> LazyColumn(Modifier.fillMaxSize(),contentPadding=PaddingValues(bottom=16.dp)) {
+                    item {
+                        Column(Modifier.fillMaxWidth().padding(horizontal=20.dp, vertical=14.dp),verticalArrangement=Arrangement.spacedBy(5.dp)) {
+                            Text("Tu música, tu mundo.",color=fg,fontSize=29.sp,fontWeight=FontWeight.ExtraBold)
+                            Text(if(loading) "Buscando música…" else "${songs.size} canciones disponibles en este dispositivo",color=secondary,fontSize=13.sp)
+                        }
+                    }
+                    item {
+                        Row(Modifier.fillMaxWidth().padding(horizontal=16.dp, vertical=10.dp),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+                            HomeTile("Reproducir todo","Escucha tu colección",Icons.Default.PlayArrow,Modifier.weight(1f),AccentSky,dark,fg,secondary){play(songs)}
+                            HomeTile(when(individualShuffleMode){1->"Aleatorio activo";2->"Aleatorio mágico";else->"Modo aleatorio"},"Descubre qué sigue",Icons.Default.Shuffle,Modifier.weight(1f),AccentPink,dark,fg,secondary){toggleIndividualShuffle(songs)}
+                        }
+                    }
+                    item { SectionHeading("Tus playlists","${playlists.size} colecciones",fg,secondary) }
+                    item { HomeRow("Crear playlist","Reúne canciones a tu manera",Icons.Default.Add,fg,secondary){playlistOrigin=page;createDialog=true} }
+                    if(playlists.isEmpty()) {
+                        item { EmptyCollectionHint("Tus playlists aparecerán aquí","Crea una playlist para organizar tus canciones",Icons.Default.QueueMusic,secondary) }
+                    } else {
+                        items(playlists,key={it.id}) { p -> HomeRow(p.name,"${p.songs.size} canciones",Icons.Default.QueueMusic,fg,secondary,p.cover){playlistOrigin=page;page="playlist:"+p.id} }
+                    }
+                    item { SectionHeading("Tu biblioteca","Todo lo que necesitas para escuchar",fg,secondary) }
                     item { HomeRow("Buscar canciones","${songs.size} canciones en el dispositivo",Icons.Default.LibraryMusic,fg,secondary){page="Buscar"} }
-                    item { HomeRow("Canciones favoritas","${favorites.size} canciones",Icons.Default.Favorite,fg,secondary){page="Favoritos"} }
+                    item { HomeRow("Canciones favoritas","${favorites.size} canciones guardadas",Icons.Default.Favorite,fg,secondary){page="Favoritos"} }
                 }
             }
             }
