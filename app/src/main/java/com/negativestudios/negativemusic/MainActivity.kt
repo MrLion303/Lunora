@@ -685,10 +685,14 @@ private fun NegativeMusicApp() {
                     }
                 }
                 page == "Descargas" -> Column(Modifier.fillMaxSize()) {
-                    Row(Modifier.fillMaxWidth().padding(horizontal=14.dp,vertical=10.dp),verticalAlignment=Alignment.CenterVertically) {
-                        IconButton(onClick={page="Biblioteca"}){Icon(Icons.Default.ArrowBack,"Volver",tint=fg)}
-                        Column(Modifier.weight(1f)){Text("Descargas",color=fg,fontSize=26.sp,fontWeight=FontWeight.ExtraBold);Text("${downloadedSongs.size} canciones",color=secondary,fontSize=12.sp)}
-                        IconButton(onClick={scope.launch { loading=true; songs=withContext(Dispatchers.IO){scanMusic(ctx)}; loading=false }}){Icon(Icons.Default.Refresh,null,tint=fg)}
+                    Row(Modifier.fillMaxWidth().padding(horizontal=18.dp,vertical=12.dp),verticalAlignment=Alignment.CenterVertically) {
+                        IconButton(onClick={page="Biblioteca"},modifier=Modifier.size(42.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant)){Icon(Icons.Default.ArrowBack,"Volver",tint=fg)}
+                        Spacer(Modifier.width(10.dp))
+                        Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(3.dp)){
+                            Text("Descargas",color=fg,fontSize=27.sp,fontWeight=FontWeight.ExtraBold)
+                            Text("${downloadedSongs.size} canciones disponibles sin conexión",color=secondary,fontSize=12.sp)
+                        }
+                        IconButton(onClick={scope.launch { loading=true; songs=withContext(Dispatchers.IO){scanMusic(ctx)}; loading=false }},modifier=Modifier.size(42.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant)){Icon(Icons.Default.Refresh,"Actualizar biblioteca",tint=AccentPurple)}
                     }
                     SongRows(downloadedSongs.map(::displaySong),favorites,fg,secondary,now?.uri,dark,{songCover(it)},{play(downloadedSongs,it);showPlayer=true},{menuSong=it},{favorite(it)},{queue(it)},Modifier.weight(1f))
                 }
@@ -777,7 +781,16 @@ private fun NegativeMusicApp() {
                          }
                      }
                      }
-                 page == "Favoritos" -> Column(Modifier.fillMaxSize()) { Text("Tus canciones favoritas",Modifier.padding(20.dp),color=fg,fontSize=26.sp,fontWeight=FontWeight.Bold); SongRows(visibleSongs,favorites,fg,secondary,now?.uri,dark,{songCover(it)},{play(songs.filter{it.uri in favorites},it);showPlayer=true},{menuSong=it},{favorite(it)},{queue(it)}, Modifier.weight(1f)) }
+                 page == "Favoritos" -> Column(Modifier.fillMaxSize()) {
+                    Column(Modifier.fillMaxWidth().padding(horizontal=20.dp,vertical=14.dp),verticalArrangement=Arrangement.spacedBy(4.dp)) {
+                        Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(9.dp)) {
+                            Icon(Icons.Default.Favorite,null,tint=AccentPink,modifier=Modifier.size(25.dp))
+                            Text("Tus favoritos",color=fg,fontSize=27.sp,fontWeight=FontWeight.ExtraBold)
+                        }
+                        Text("${favorites.size} canciones que guardaste",color=secondary,fontSize=13.sp)
+                    }
+                    SongRows(visibleSongs,favorites,fg,secondary,now?.uri,dark,{songCover(it)},{play(songs.filter{it.uri in favorites},it);showPlayer=true},{menuSong=it},{favorite(it)},{queue(it)}, Modifier.weight(1f))
+                 }
                 else -> LazyColumn(Modifier.fillMaxSize(),contentPadding=PaddingValues(bottom=16.dp)) {
                     item {
                         Column(Modifier.fillMaxWidth().padding(horizontal=20.dp, vertical=14.dp),verticalArrangement=Arrangement.spacedBy(5.dp)) {
@@ -1097,10 +1110,29 @@ private fun NegativeMusicApp() {
                 }
             }
             if(showQueue) androidx.compose.material3.ModalBottomSheet(onDismissRequest={showQueue=false},containerColor=surface,contentColor=fg) {
-                Row(Modifier.fillMaxWidth().padding(horizontal=20.dp,vertical=8.dp),verticalAlignment=Alignment.CenterVertically){Text("Fila de reproducción",fontSize=23.sp,fontWeight=FontWeight.ExtraBold,color=fg,modifier=Modifier.weight(1f));TextButton(onClick={controller?.clearMediaItems();showQueue=false}){Text("Vaciar")}}
+                Row(Modifier.fillMaxWidth().padding(horizontal=20.dp,vertical=10.dp),verticalAlignment=Alignment.CenterVertically){
+                    Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(2.dp)){
+                        Text("A continuación",fontSize=23.sp,fontWeight=FontWeight.ExtraBold,color=fg)
+                        Text("${controller?.mediaItemCount ?: 0} canciones en la fila",fontSize=12.sp,color=secondary)
+                    }
+                    TextButton(onClick={controller?.clearMediaItems();showQueue=false}){Text("Vaciar fila",color=AccentPurple)}
+                }
                 val qp=controller
-                if(qp==null||qp.mediaItemCount==0) Box(Modifier.fillMaxWidth().height(180.dp),contentAlignment=Alignment.Center){Text("La fila está vacía.",color=secondary)}
-                else LazyColumn(Modifier.fillMaxWidth().heightIn(max=520.dp).padding(bottom=20.dp)){items((0 until qp.mediaItemCount).toList(),key={it}){i->val mi=qp.getMediaItemAt(i);val song=songs.firstOrNull{it.uri==mi.localConfiguration?.uri?.toString()};Row(Modifier.fillMaxWidth().clickable{qp.seekTo(i,0);qp.play();showQueue=false}.padding(horizontal=18.dp,vertical=8.dp),verticalAlignment=Alignment.CenterVertically){Box(Modifier.size(44.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceVariant),contentAlignment=Alignment.Center){Icon(Icons.Default.Album,null,tint=AccentPurple)};Spacer(Modifier.width(10.dp));Column(Modifier.weight(1f)){Text(song?.title?:mi.mediaMetadata.title?.toString().orEmpty(),color=if(i==qp.currentMediaItemIndex)AccentPurple else fg,maxLines=1);Text(song?.artist?:mi.mediaMetadata.artist?.toString().orEmpty(),color=secondary,fontSize=12.sp,maxLines=1)};IconButton(onClick={qp.removeMediaItem(i)}){Icon(Icons.Default.Close,"Quitar",tint=secondary)}}}}
+                if(qp==null||qp.mediaItemCount==0) EmptyCollectionHint("La fila está vacía","Añade canciones para decidir qué escuchar después",Icons.Default.QueueMusic,secondary)
+                else LazyColumn(Modifier.fillMaxWidth().heightIn(max=520.dp).padding(bottom=20.dp),contentPadding=PaddingValues(horizontal=12.dp,vertical=6.dp),verticalArrangement=Arrangement.spacedBy(3.dp)){
+                    items((0 until qp.mediaItemCount).toList(),key={it}){
+                        i->val mi=qp.getMediaItemAt(i);val song=songs.firstOrNull{it.uri==mi.localConfiguration?.uri?.toString()}
+                        Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(if(i==qp.currentMediaItemIndex)AccentPurple.copy(alpha=.12f) else Color.Transparent).clickable{qp.seekTo(i,0);qp.play();showQueue=false}.padding(horizontal=10.dp,vertical=8.dp),verticalAlignment=Alignment.CenterVertically){
+                            Box(Modifier.size(46.dp).clip(RoundedCornerShape(11.dp)).background(MaterialTheme.colorScheme.surfaceVariant),contentAlignment=Alignment.Center){Icon(if(i==qp.currentMediaItemIndex)Icons.Default.VolumeUp else Icons.Default.Album,null,tint=if(i==qp.currentMediaItemIndex)AccentPurple else secondary)}
+                            Spacer(Modifier.width(11.dp))
+                            Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(2.dp)){
+                                Text(song?.title?:mi.mediaMetadata.title?.toString().orEmpty(),color=if(i==qp.currentMediaItemIndex)AccentPurple else fg,fontWeight=FontWeight.SemiBold,maxLines=1,overflow=TextOverflow.Ellipsis)
+                                Text(song?.artist?:mi.mediaMetadata.artist?.toString().orEmpty(),color=secondary,fontSize=12.sp,maxLines=1,overflow=TextOverflow.Ellipsis)
+                            }
+                            IconButton(onClick={qp.removeMediaItem(i)}){Icon(Icons.Default.Close,"Quitar de la fila",tint=secondary)}
+                        }
+                    }
+                }
             }
         }
     }
