@@ -156,8 +156,11 @@ private fun VerticalEqualizerSlider(
             val inset = 10.dp.toPx()
             val top = inset
             val bottom = (size.height - inset).coerceAtLeast(top + 1f)
-            val fraction = ((value - valueRange.start) / (valueRange.endInclusive - valueRange.start).coerceAtLeast(0.0001f)).coerceIn(0f, 1f)
+            val rangeSize = (valueRange.endInclusive - valueRange.start).coerceAtLeast(0.0001f)
+            val fraction = ((value - valueRange.start) / rangeSize).coerceIn(0f, 1f)
+            val zeroFraction = ((0f - valueRange.start) / rangeSize).coerceIn(0f, 1f)
             val thumbY = bottom - fraction * (bottom - top)
+            val zeroY = bottom - zeroFraction * (bottom - top)
             drawLine(
                 color = AccentLavender.copy(alpha = 0.22f),
                 start = Offset(centerX, top),
@@ -167,9 +170,16 @@ private fun VerticalEqualizerSlider(
             )
             drawLine(
                 color = AccentPurple,
-                start = Offset(centerX, bottom),
+                start = Offset(centerX, zeroY),
                 end = Offset(centerX, thumbY),
                 strokeWidth = 5.dp.toPx(),
+                cap = StrokeCap.Round
+            )
+            drawLine(
+                color = AccentLavender.copy(alpha = 0.65f),
+                start = Offset(centerX - 8.dp.toPx(), zeroY),
+                end = Offset(centerX + 8.dp.toPx(), zeroY),
+                strokeWidth = 2.dp.toPx(),
                 cap = StrokeCap.Round
             )
             drawCircle(
@@ -1423,7 +1433,7 @@ private fun SettingsPage(
                                 eqBands.take(frequencies.size).forEachIndexed { index,value ->
                                     val frequencyLabel = if (frequencies[index] >= 1000) "%.1fk".format(Locale.getDefault(), frequencies[index] / 1000f).removeSuffix(".0k") else frequencies[index].toString()
                                     Column(Modifier.weight(1f),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.Center) {
-                                        Text("%+.0f".format(Locale.getDefault(), value.coerceIn(eqRange.start, eqRange.endInclusive)),color=AccentPurple,fontSize=13.sp,fontWeight=FontWeight.Bold)
+                                        Text("%+.0f dB".format(Locale.getDefault(), value.coerceIn(eqRange.start, eqRange.endInclusive)),color=AccentPurple,fontSize=12.sp,fontWeight=FontWeight.Bold)
                                         VerticalEqualizerSlider(
                                             value = value.coerceIn(eqRange.start, eqRange.endInclusive),
                                             onValueChange = { onBand(index, it.coerceIn(eqRange.start, eqRange.endInclusive)) },
