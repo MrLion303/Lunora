@@ -568,7 +568,7 @@ private fun NegativeMusicApp() {
         }
     }
     MaterialTheme(colorScheme = if (dark) darkColorScheme(primary=AccentPurple, secondary=AccentSky, background=bg, surface=surface) else lightColorScheme(primary=AccentPurple, secondary=AccentSky, secondaryContainer=Color(0xFFDDF5FF), onSecondaryContainer=Color(0xFF15384A), surfaceVariant=Color(0xFFF0EAFF), background=bg, surface=surface), typography = if (Locale.getDefault().language == "ja") ZenMaruGothicTypography else QuicksandTypography) {
-        Column(Modifier.fillMaxSize().background(bg)) {
+        Column(Modifier.fillMaxSize().background(bg).statusBarsPadding()) {
             if (!page.startsWith("playlist:")) Row(Modifier.fillMaxWidth().padding(horizontal=18.dp, vertical=12.dp), verticalAlignment=Alignment.CenterVertically) {
                 Image(
                     painter = painterResource(R.drawable.lunora_menu_title),
