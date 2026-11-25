@@ -828,7 +828,7 @@ private fun NegativeMusicApp() {
         ){Text(toast,color=if(dark)Color.White else Color(0xFF171717),fontSize=13.sp,maxLines=2,overflow=TextOverflow.Ellipsis)}
     }
             if (now != null) {
-                Row(Modifier.fillMaxWidth().padding(horizontal=8.dp,vertical=5.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surfaceVariant).padding(8.dp),verticalAlignment=Alignment.CenterVertically) {
+                Row(Modifier.fillMaxWidth().padding(horizontal=8.dp,vertical=5.dp).clip(RoundedCornerShape(16.dp)).background(if (dark) Color(0xFF171426) else Color(0xFFF2EFFA)).padding(horizontal=10.dp,vertical=8.dp),verticalAlignment=Alignment.CenterVertically) {
                     Row(Modifier.weight(1f).clip(RoundedCornerShape(8.dp)).clickable { showPlayer = true },verticalAlignment=Alignment.CenterVertically) {
                         if (songCover(now!!).isNotBlank()) PlaylistCoverImage(songCover(now!!),Modifier.size(38.dp).clip(RoundedCornerShape(8.dp)),"Carátula de ${songTitle(now!!)}",MaterialTheme.colorScheme.surfaceVariant,24.dp) else Icon(Icons.Default.Album,null,tint=AccentPurple,modifier=Modifier.size(38.dp))
                         Spacer(Modifier.width(9.dp))
